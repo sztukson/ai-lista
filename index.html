@@ -723,11 +723,26 @@ const DEFAULT_ITEMS_SZPILKI = [
   { id:'sz14', sec:'todo', quad:'q4', checked:false, priority:false, pawel:false, note:'', text:'Plan premiery — data, social media, press' },
 ];
 
+const DEFAULT_ITEMS_PRYWATNE = [
+  { id:'pr1', sec:'todo', quad:'q1', checked:false, priority:true,  pawel:false, note:'', text:'Zalanie grudzień — wspólnota + ubezpieczyciel unika, wymagana interwencja' },
+  { id:'pr2', sec:'todo', quad:'q1', checked:false, priority:true,  pawel:false, note:'', text:'Zalanie luty — rozwalony wężyk, roszczenie z Generali (moja polisa)' },
+  { id:'pr3', sec:'todo', quad:'q1', checked:false, priority:true,  pawel:false, note:'', text:'Zalanie maj (odkryte 08.05) — roszczenie z PZU (polisa sąsiada)' },
+];
+
+const DEFAULT_ITEMS_WIDEO = [
+  { id:'wi1', sec:'todo', quad:'q1', checked:false, priority:true,  pawel:false, note:'', text:'Faktura Grid — policzyć kwotę i wystawić' },
+  { id:'wi2', sec:'todo', quad:'q1', checked:false, priority:true,  pawel:false, note:'', text:'Faktura Rossmann — wystawić' },
+  { id:'wi3', sec:'todo', quad:'q1', checked:false, priority:true,  pawel:false, note:'', text:'Faktura Wolarek #1 — policzyć kwotę i wystawić' },
+  { id:'wi4', sec:'todo', quad:'q1', checked:false, priority:true,  pawel:false, note:'', text:'Faktura Wolarek #2 — za nagrania, wystawić' },
+  { id:'wi5', sec:'todo', quad:'q1', checked:false, priority:true,  pawel:false, note:'', text:'Wypowiedzenie umowy — film "Bieda" (oficjalne pismo)' },
+  { id:'wi6', sec:'todo', quad:'q1', checked:false, priority:true,  pawel:false, note:'', text:'Przelew za film "Odbicie" — poprosić o realizację' },
+];
+
 const PROJECTS = {
   general:  { label: 'Wszystkie',         storageKey: 'ai-lista-v5',        defaultItems: DEFAULT_ITEMS },
-  prywatne: { label: 'Prywatne',          storageKey: 'ai-lista-prywatne',  defaultItems: [] },
+  prywatne: { label: 'Prywatne',          storageKey: 'ai-lista-prywatne',  defaultItems: DEFAULT_ITEMS_PRYWATNE },
   dp:       { label: 'DP',                storageKey: 'ai-lista-dp',        defaultItems: [] },
-  wideo:    { label: 'Wideo na Socjale',  storageKey: 'ai-lista-wideo',     defaultItems: [] },
+  wideo:    { label: 'Wideo na Socjale',  storageKey: 'ai-lista-wideo',     defaultItems: DEFAULT_ITEMS_WIDEO },
   szpilki:  { label: 'Zdunek — Szpilki', storageKey: 'ai-lista-szpilki',   defaultItems: DEFAULT_ITEMS_SZPILKI },
 };
 
