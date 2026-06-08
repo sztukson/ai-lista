@@ -358,57 +358,106 @@
   ::-webkit-scrollbar-thumb { background: var(--surface2); border-radius: 3px; }
 
   /* ── MOBILE ── */
-  @media (max-width: 600px) {
-    body { padding: 14px 10px; }
+  @media (max-width: 640px) {
+    body { padding: 10px 8px 80px; font-size: 13px; }
 
-    .proj-tabs { gap: 3px; padding: 4px; }
-    .proj-tab  { font-size: 10px; padding: 6px 6px; }
+    /* TABS — przewijalne poziomo, nie zawijają */
+    .proj-tabs {
+      flex-wrap: nowrap; overflow-x: auto; gap: 3px; padding: 4px;
+      -webkit-overflow-scrolling: touch; scrollbar-width: none;
+    }
+    .proj-tabs::-webkit-scrollbar { display: none; }
+    .proj-tab { flex: 0 0 auto; font-size: 11px; padding: 8px 11px; white-space: nowrap; }
 
-    .header h1 { font-size: 18px; }
+    /* HEADER */
+    .header { margin-bottom: 18px; }
+    .header h1 { font-size: 17px; }
     .header p  { font-size: 11px; }
 
-    .overview { grid-template-columns: repeat(2, 1fr); gap: 7px; margin-bottom: 14px; }
-    .stat-value { font-size: 20px; }
+    /* STATS — 2 kolumny */
+    .overview { grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 14px; }
+    .stat-card { padding: 10px 8px; }
+    .stat-value { font-size: 22px; }
+    .stat-label { font-size: 9px; }
 
-    .actions { gap: 5px; }
-    .btn { font-size: 10px; padding: 5px 9px; }
+    /* PROGRESS */
+    .main-progress { padding: 10px 12px; margin-bottom: 14px; }
+    .progress-label { font-size: 11px; }
+    .progress-pct   { font-size: 15px; }
 
-    .filter-bar { gap: 4px; }
-    .btn-filter { font-size: 10px; padding: 3px 9px; }
+    /* ACTIONS — 2 rzędy, mniejsze przyciski */
+    .actions { gap: 4px; }
+    .btn { font-size: 10px; padding: 6px 10px; }
 
-    /* week view: horizontal scroll on mobile */
-    .week-grid { grid-template-columns: repeat(7, minmax(90px, 1fr)); overflow-x: auto; }
-    .week-view { overflow-x: auto; }
+    /* FILTRY */
+    .filter-bar { gap: 4px; margin-bottom: 8px; }
+    .filter-label { font-size: 9px; }
+    .btn-filter { font-size: 10px; padding: 4px 10px; }
 
-    /* matrix quadrants */
-    .q-header { padding: 8px 10px; font-size: 10px; }
+    /* WEEK VIEW — poziomy scroll */
+    .week-view { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .week-grid { grid-template-columns: repeat(7, minmax(80px, 1fr)); min-width: 560px; }
+    .week-col-hd { font-size: 9px; padding: 4px; }
+    .week-item  { font-size: 9px; }
 
-    /* items — bigger touch targets */
-    .item { padding: 10px 8px; }
-    .cb   { width: 20px; height: 20px; }
-    .item-text { font-size: 13px; }
-    .btn-edit-item, .btn-delete-item, .btn-note-item { display: block; font-size: 16px; padding: 0 4px; }
-
-    /* add form */
-    .add-input  { font-size: 14px; padding: 10px 12px; }
-    .add-row    { flex-direction: column; gap: 6px; }
-    .add-select, .add-date { width: 100%; }
-    .toggle-pawel { width: 100%; justify-content: center; }
-    .btn-add    { width: 100%; padding: 10px; font-size: 13px; margin-left: 0; }
-
-    /* section headers */
+    /* SEKCJE */
     .sec-header { font-size: 11px; padding: 10px 12px; }
+    .sec-count  { font-size: 9px; }
+    .sec-body   { padding: 5px; }
 
-    /* log panel */
-    .log-body { max-height: 150px; }
+    /* QUADRANTY */
+    .q-header { padding: 9px 10px; font-size: 10px; }
+    .q-desc   { display: none; }
+    .q-body   { padding: 4px; }
 
-    /* voice FAB — move left a bit so it doesn't overlap scrollbar */
-    .voice-fab    { bottom: 16px; right: 16px; width: 46px; height: 46px; font-size: 18px; }
-    .voice-status { bottom: 72px; right: 16px; max-width: calc(100vw - 32px); }
+    /* ITEMY — duże targety dotykowe */
+    .item { padding: 11px 8px; gap: 7px; }
+    .cb   { width: 22px; height: 22px; border-radius: 5px; flex-shrink: 0; }
+    .cb.checked::after  { font-size: 12px; }
+    .cb.inprogress::after { font-size: 13px; }
+    .num  { font-size: 10px; min-width: 14px; }
+    .drag-handle { display: none; }
+    .item-text  { font-size: 13px; line-height: 1.5; }
+    /* przyciski zawsze widoczne na mobile */
+    .btn-edit-item, .btn-delete-item, .btn-note-item { display: block !important; font-size: 15px; padding: 0 3px; color: var(--muted) !important; }
+    .btn-priority { font-size: 16px; }
+    .note-row { padding-left: 40px; }
 
-    /* io row */
+    /* FORMULARZ DODAWANIA */
+    .add-form   { padding: 12px 10px; gap: 8px; }
+    .add-input  { font-size: 14px; padding: 11px 12px; }
+    .add-row    { flex-direction: column; gap: 7px; }
+    .add-select { width: 100%; padding: 9px 10px; font-size: 13px; }
+    .add-date   { width: 100%; padding: 9px 10px; font-size: 13px; }
+    .toggle-pawel { width: 100%; justify-content: center; padding: 9px; font-size: 13px; }
+    .btn-add    { width: 100%; margin-left: 0; padding: 11px; font-size: 13px; }
+    .btn-mic    { width: 44px; height: 44px; font-size: 18px; }
+
+    /* IO ROW */
     .io-row { gap: 5px; }
-    .btn-io { font-size: 10px; padding: 5px 8px; }
+    .btn-io { font-size: 10px; padding: 6px 10px; }
+
+    /* DONE SUBS */
+    .done-sub-hd { font-size: 10px; padding: 8px 10px; }
+
+    /* LOG */
+    .log-hd  { font-size: 10px; padding: 8px 12px; }
+    .log-body { max-height: 130px; }
+    .log-entry { font-size: 10px; }
+
+    /* VOICE FAB */
+    .voice-fab    { bottom: 14px; right: 14px; width: 48px; height: 48px; font-size: 20px; }
+    .voice-status { bottom: 70px; right: 14px; max-width: calc(100vw - 28px); }
+
+    /* EDIT MODE */
+    .item-edit-text  { font-size: 14px; }
+    .item-edit-row   { flex-direction: column; gap: 6px; }
+    .item-edit-row .add-select { width: 100%; }
+    .item-edit-row .add-date   { width: 100%; }
+    .btn-save-edit, .btn-cancel-edit { width: 100%; padding: 9px; font-size: 12px; text-align: center; }
+
+    /* TOAST */
+    .toast { bottom: 70px; right: 10px; left: 10px; text-align: center; font-size: 12px; }
   }
 
   /* MIC BUTTON */
