@@ -357,6 +357,60 @@
   ::-webkit-scrollbar { width: 5px; }
   ::-webkit-scrollbar-thumb { background: var(--surface2); border-radius: 3px; }
 
+  /* ── MOBILE ── */
+  @media (max-width: 600px) {
+    body { padding: 14px 10px; }
+
+    .proj-tabs { gap: 3px; padding: 4px; }
+    .proj-tab  { font-size: 10px; padding: 6px 6px; }
+
+    .header h1 { font-size: 18px; }
+    .header p  { font-size: 11px; }
+
+    .overview { grid-template-columns: repeat(2, 1fr); gap: 7px; margin-bottom: 14px; }
+    .stat-value { font-size: 20px; }
+
+    .actions { gap: 5px; }
+    .btn { font-size: 10px; padding: 5px 9px; }
+
+    .filter-bar { gap: 4px; }
+    .btn-filter { font-size: 10px; padding: 3px 9px; }
+
+    /* week view: horizontal scroll on mobile */
+    .week-grid { grid-template-columns: repeat(7, minmax(90px, 1fr)); overflow-x: auto; }
+    .week-view { overflow-x: auto; }
+
+    /* matrix quadrants */
+    .q-header { padding: 8px 10px; font-size: 10px; }
+
+    /* items — bigger touch targets */
+    .item { padding: 10px 8px; }
+    .cb   { width: 20px; height: 20px; }
+    .item-text { font-size: 13px; }
+    .btn-edit-item, .btn-delete-item, .btn-note-item { display: block; font-size: 16px; padding: 0 4px; }
+
+    /* add form */
+    .add-input  { font-size: 14px; padding: 10px 12px; }
+    .add-row    { flex-direction: column; gap: 6px; }
+    .add-select, .add-date { width: 100%; }
+    .toggle-pawel { width: 100%; justify-content: center; }
+    .btn-add    { width: 100%; padding: 10px; font-size: 13px; margin-left: 0; }
+
+    /* section headers */
+    .sec-header { font-size: 11px; padding: 10px 12px; }
+
+    /* log panel */
+    .log-body { max-height: 150px; }
+
+    /* voice FAB — move left a bit so it doesn't overlap scrollbar */
+    .voice-fab    { bottom: 16px; right: 16px; width: 46px; height: 46px; font-size: 18px; }
+    .voice-status { bottom: 72px; right: 16px; max-width: calc(100vw - 32px); }
+
+    /* io row */
+    .io-row { gap: 5px; }
+    .btn-io { font-size: 10px; padding: 5px 8px; }
+  }
+
   /* MIC BUTTON */
   .btn-mic {
     width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--border);
