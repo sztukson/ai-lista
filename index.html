@@ -541,7 +541,7 @@
     .filter-label { display: none; }
     .btn-filter { font-size: 11px; padding: 6px 12px; white-space: nowrap; flex-shrink: 0; border-radius: 20px; }
     .search-inline { display: none !important; }
-    .search-row { margin-bottom: 8px; }
+    .search-row { display: block; margin-bottom: 8px; }
 
     /* WEEK VIEW */
     .week-view { overflow-x: auto; -webkit-overflow-scrolling: touch; }
@@ -1265,6 +1265,7 @@ function getItemDateStr(item) {
 //  FILTER
 // ════════════════════════════════════════
 function setFilter(f) {
+  if (activeFilter === f) f = 'all';
   activeFilter = f;
   ['all','priority','today','overdue','inprogress','prywatne','firmowe','dop','projekty'].forEach(k => {
     const el = document.getElementById('f-'+k);
