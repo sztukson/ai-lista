@@ -346,6 +346,7 @@
   .note-area::placeholder { color: var(--border); }
 
   /* EXPORT/IMPORT */
+  .search-row { display: none; }
   .io-row { display: flex; gap: 8px; justify-content: flex-end; margin-bottom: 12px; }
   .btn-io {
     padding: 5px 11px; border-radius: 7px; border: 1px solid var(--border);
@@ -539,7 +540,8 @@
     .filter-bar::-webkit-scrollbar { display: none; }
     .filter-label { display: none; }
     .btn-filter { font-size: 11px; padding: 6px 12px; white-space: nowrap; flex-shrink: 0; border-radius: 20px; }
-    #search-input { flex-shrink: 0; min-width: 120px; font-size: 12px; }
+    .search-inline { display: none !important; }
+    .search-row { margin-bottom: 8px; }
 
     /* WEEK VIEW */
     .week-view { overflow-x: auto; -webkit-overflow-scrolling: touch; }
@@ -788,8 +790,15 @@
     <button class="btn-filter"        id="f-today"      onclick="setFilter('today')">📅 Dziś</button>
     <button class="btn-filter"        id="f-overdue"    onclick="setFilter('overdue')" style="color:var(--red)">🔴 Przeterminowane</button>
     <input id="search-input" type="text" placeholder="🔍 Szukaj…" oninput="setSearch(this.value)"
+      class="search-inline"
       style="background:var(--surface);border:1px solid var(--border);color:var(--text);
              border-radius:6px;padding:4px 10px;font-size:12px;font-family:inherit;width:160px;outline:none;"
+      onfocus="this.style.borderColor='var(--cyan)'" onblur="this.style.borderColor='var(--border)'">
+  </div>
+  <div class="search-row">
+    <input id="search-input-mobile" type="text" placeholder="🔍 Szukaj zadań…" oninput="setSearch(this.value)"
+      style="width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);
+             border-radius:8px;padding:9px 12px;font-size:14px;font-family:inherit;outline:none;"
       onfocus="this.style.borderColor='var(--cyan)'" onblur="this.style.borderColor='var(--border)'">
   </div>
 
@@ -1290,6 +1299,10 @@ function applyFilter(list) {
 
 function setSearch(val) {
   activeSearch = val.trim().toLowerCase();
+  const other = val === document.getElementById('search-input')?.value
+    ? document.getElementById('search-input-mobile')
+    : document.getElementById('search-input');
+  if (other && other.value !== val) other.value = val;
   render();
 }
 
