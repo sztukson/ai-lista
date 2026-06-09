@@ -492,116 +492,130 @@
 
   /* ── MOBILE ── */
   @media (max-width: 640px) {
-    body { padding: 8px 8px env(safe-area-inset-bottom,76px); font-size: 13px; }
+    body {
+      padding: 0 0 calc(env(safe-area-inset-bottom,0px) + 62px);
+      font-size: 14px;
+    }
 
-    /* TABS — ukryte, zastąpione przez bottom nav */
-    .proj-tabs { display: none; }
+    .container { padding: 0 10px; }
 
-    /* HEADER */
-    .header { margin-bottom: 14px; }
-    .header h1 { font-size: 17px; }
-    .header p  { font-size: 11px; }
+    /* TABS — ukryte, bottom nav zastępuje */
+    .proj-tabs { display: none !important; }
 
-    /* STATS — 2 kolumny */
-    .overview { grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 12px; }
-    .stat-card { padding: 10px 8px; }
-    .stat-value { font-size: 22px; }
-    .stat-label { font-size: 9px; }
+    /* HEADER — kompaktowy, tylko tytuł + status */
+    .header { margin: 10px 0 8px; text-align: left; display: flex; align-items: center; gap: 8px; }
+    .header h1 { font-size: 16px; margin: 0; }
+    .header p  { font-size: 11px; margin: 0; margin-left: auto; }
 
-    /* PROGRESS */
-    .main-progress { padding: 10px 12px; margin-bottom: 12px; }
-    .progress-label { font-size: 11px; }
-    .progress-pct   { font-size: 15px; }
+    /* STATS — jedna pozioma listwa */
+    .overview {
+      display: flex; gap: 6px; margin-bottom: 8px; overflow-x: auto;
+      scrollbar-width: none; -webkit-overflow-scrolling: touch;
+    }
+    .overview::-webkit-scrollbar { display: none; }
+    .stat-card {
+      flex: 0 0 auto; min-width: 70px; padding: 7px 10px;
+      display: flex; align-items: center; gap: 6px; text-align: left;
+    }
+    .stat-value { font-size: 18px; margin: 0; }
+    .stat-label { font-size: 9px; white-space: nowrap; }
 
-    /* ACTIONS — poziomy scroll, nie zawijają */
+    /* PROGRESS — schowany na mobile */
+    .main-progress { display: none; }
+
+    /* ACTIONS — poziomy scroll */
     .actions {
-      flex-wrap: nowrap; overflow-x: auto; gap: 6px;
-      padding-bottom: 4px; -webkit-overflow-scrolling: touch;
-      scrollbar-width: none;
+      flex-wrap: nowrap; overflow-x: auto; gap: 5px; margin-bottom: 8px;
+      padding-bottom: 2px; -webkit-overflow-scrolling: touch; scrollbar-width: none;
     }
     .actions::-webkit-scrollbar { display: none; }
-    .btn { font-size: 11px; padding: 7px 12px; white-space: nowrap; flex-shrink: 0; }
+    .btn { font-size: 11px; padding: 7px 11px; white-space: nowrap; flex-shrink: 0; }
 
     /* FILTRY — poziomy scroll */
     .filter-bar {
-      flex-wrap: nowrap; overflow-x: auto; gap: 6px; margin-bottom: 10px;
+      flex-wrap: nowrap; overflow-x: auto; gap: 5px; margin-bottom: 8px;
       -webkit-overflow-scrolling: touch; scrollbar-width: none;
     }
     .filter-bar::-webkit-scrollbar { display: none; }
     .filter-label { display: none; }
-    .btn-filter { font-size: 11px; padding: 6px 12px; white-space: nowrap; flex-shrink: 0; }
-    #search-input { flex-shrink: 0; min-width: 130px; }
+    .btn-filter { font-size: 11px; padding: 6px 12px; white-space: nowrap; flex-shrink: 0; border-radius: 20px; }
+    #search-input { flex-shrink: 0; min-width: 120px; font-size: 12px; }
 
-    /* WEEK VIEW — poziomy scroll */
+    /* WEEK VIEW */
     .week-view { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-    .week-grid { grid-template-columns: repeat(7, minmax(80px, 1fr)); min-width: 560px; }
+    .week-grid { grid-template-columns: repeat(7, minmax(72px,1fr)); min-width: 504px; }
     .week-col-hd { font-size: 9px; padding: 4px; }
     .week-item  { font-size: 9px; }
 
     /* SEKCJE */
-    .sec-header { font-size: 11px; padding: 10px 12px; }
-    .sec-count  { font-size: 9px; }
+    .section { margin-bottom: 8px; border-radius: 10px; }
+    .sec-header { font-size: 11px; padding: 10px 12px; letter-spacing: .05em; }
+    .sec-count  { font-size: 10px; }
     .sec-body   { padding: 4px; }
 
     /* QUADRANTY */
-    .q-header { padding: 9px 10px; font-size: 10px; }
+    .q-header { padding: 9px 12px; font-size: 10px; }
     .q-desc   { display: none; }
     .q-body   { padding: 3px; }
 
-    /* ITEMY — duże targety dotykowe, czyste */
-    .item { padding: 12px 8px; gap: 8px; flex-wrap: nowrap; }
-    .cb   { width: 24px; height: 24px; border-radius: 5px; flex-shrink: 0; }
-    .cb.checked::after  { font-size: 13px; }
-    .cb.inprogress::after { font-size: 14px; }
+    /* ITEMY — duże, czyste */
+    .item { padding: 13px 8px; gap: 10px; flex-wrap: nowrap; align-items: center; }
+    .sel-cb { display: none; }
+    .cb   { width: 26px; height: 26px; border-radius: 6px; flex-shrink: 0; border-width: 2px; }
+    .cb.checked::after  { font-size: 14px; }
+    .cb.inprogress::after { font-size: 15px; line-height: 24px; }
     .num  { display: none; }
     .drag-handle { display: none; }
-    .item-text  { font-size: 13px; line-height: 1.5; }
+    .item-text  { font-size: 14px; line-height: 1.45; }
+    .badge-cat  { font-size: 9px; padding: 1px 5px; }
+    .date-tag   { font-size: 10px; }
 
-    /* Na mobile: ukryj WSZYSTKIE akcje, pokaż tylko ★ i ⋯ */
+    /* Na mobile: tylko ★ i ⋯ */
     .btn-edit-item, .btn-delete-item, .btn-note-item,
     .btn-progress-item, .btn-move-item, .btn-date-item { display: none !important; }
-    .btn-priority { font-size: 18px; flex-shrink: 0; }
-    .btn-more-item { display: flex !important; }
+    .btn-priority { font-size: 18px; flex-shrink: 0; color: var(--border); padding: 0; }
+    .btn-priority.active { color: var(--yellow); }
+    .btn-more-item { display: flex !important; align-items: center; justify-content: center; color: var(--muted); font-size: 20px; width: 30px; }
 
-    .note-row { padding-left: 32px; }
+    .note-row { padding-left: 36px; }
+    .note-area { font-size: 13px; }
 
     /* FORMULARZ DODAWANIA */
-    .add-form   { padding: 12px 10px; gap: 8px; }
-    .add-input  { font-size: 14px; padding: 11px 12px; }
+    .add-form   { padding: 12px 10px; gap: 8px; border-radius: 12px; }
+    .add-input  { font-size: 15px; padding: 12px 12px; border-radius: 10px; }
     .add-row    { flex-direction: column; gap: 7px; }
-    .add-select { width: 100%; padding: 9px 10px; font-size: 13px; }
-    .add-date   { width: 100%; padding: 9px 10px; font-size: 13px; }
-    .toggle-pawel { width: 100%; justify-content: center; padding: 9px; font-size: 13px; }
-    .btn-add    { width: 100%; margin-left: 0; padding: 11px; font-size: 13px; }
-    .btn-mic    { width: 44px; height: 44px; font-size: 18px; }
+    .add-select { width: 100%; padding: 10px 10px; font-size: 13px; border-radius: 8px; }
+    .add-date   { width: 100%; padding: 10px 10px; font-size: 13px; border-radius: 8px; }
+    .btn-add    { width: 100%; margin-left: 0; padding: 13px; font-size: 14px; font-weight: 700; border-radius: 10px; }
+    .btn-mic    { width: 46px; height: 46px; font-size: 20px; border-radius: 10px; }
 
-    /* IO ROW — ukryty na mobile (jest w menu) */
-    .io-row { display: none; }
+    /* IO ROW + LOG — ukryte */
+    .io-row     { display: none; }
+    .log-panel  { display: none; }
 
     /* DONE SUBS */
     .done-sub-hd { font-size: 10px; padding: 8px 10px; }
 
-    /* LOG */
-    .log-hd  { font-size: 10px; padding: 8px 12px; }
-    .log-body { max-height: 130px; }
-    .log-entry { font-size: 10px; }
-
-    /* VOICE FAB — przesuń żeby nie nachodził na nav */
-    .voice-fab    { bottom: 70px; right: 14px; width: 48px; height: 48px; font-size: 20px; }
-    .voice-status { bottom: 130px; right: 14px; max-width: calc(100vw - 28px); }
+    /* VOICE FAB */
+    .voice-fab    { bottom: 72px; right: 14px; width: 46px; height: 46px; font-size: 20px; }
+    .voice-status { bottom: 128px; right: 14px; max-width: calc(100vw - 28px); }
 
     /* EDIT MODE */
     .item-edit-text  { font-size: 14px; }
     .item-edit-row   { flex-direction: column; gap: 6px; }
     .item-edit-row .add-select { width: 100%; }
     .item-edit-row .add-date   { width: 100%; }
-    .btn-save-edit, .btn-cancel-edit { width: 100%; padding: 9px; font-size: 12px; text-align: center; }
+    .btn-save-edit, .btn-cancel-edit { width: 100%; padding: 11px; font-size: 13px; text-align: center; border-radius: 8px; }
 
     /* TOAST */
-    .toast { bottom: 76px; right: 10px; left: 10px; text-align: center; font-size: 12px; }
+    .toast { bottom: 72px; right: 10px; left: 10px; text-align: center; font-size: 13px; }
 
     /* BOTTOM NAV */
     .mobile-nav { display: flex; }
+
+    /* CAL MODAL */
+    .cal-modal { border-radius: 18px 18px 0 0; position: fixed; bottom: 0; left: 0; right: 0; max-height: 80vh; }
+    .cal-overlay { align-items: flex-end; }
   }
 
   /* MIC BUTTON */
