@@ -2,10 +2,18 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lista Zadań AI — Jakub Sztuk</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#39d0c8">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="AI Lista">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Lista Zadań AI</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
   :root {
     --bg:#0d1117; --surface:#161b22; --surface2:#21262d; --border:#30363d;
@@ -187,10 +195,14 @@
     font-size: 9px; font-weight: 700; margin-left: 5px; vertical-align: middle;
     text-transform: uppercase; letter-spacing: .04em;
   }
-  .badge-cat.cat-prywatne { background: rgba(88,166,255,.15); color: var(--blue);   border: 1px solid rgba(88,166,255,.3); }
-  .badge-cat.cat-firmowe  { background: rgba(63,185,80,.15);  color: var(--green);  border: 1px solid rgba(63,185,80,.3);  }
-  .badge-cat.cat-dop      { background: rgba(230,126,34,.15); color: var(--orange); border: 1px solid rgba(230,126,34,.3); }
-  .badge-cat.cat-projekty { background: rgba(188,140,255,.15);color: var(--purple); border: 1px solid rgba(188,140,255,.3);}
+  .badge-cat.cat-prywatne { background: rgba(248,81,73,.15);   color: var(--red);    border: 1px solid rgba(248,81,73,.3);  }
+  .badge-cat.cat-dp       { background: rgba(88,166,255,.15);  color: var(--blue);   border: 1px solid rgba(88,166,255,.3);  }
+  .badge-cat.cat-vns      { background: rgba(230,126,34,.15);  color: var(--orange); border: 1px solid rgba(230,126,34,.3); }
+  .badge-cat.cat-telegram { background: rgba(0,188,212,.15);   color: var(--cyan);   border: 1px solid rgba(0,188,212,.3);  }
+  .badge-cat.cat-szpilki  { background: rgba(163,113,247,.15); color: var(--purple); border: 1px solid rgba(163,113,247,.3);}
+  .badge-cat.cat-vibecoding{ background: rgba(163,113,247,.15);color: var(--purple); border: 1px solid rgba(163,113,247,.3);}
+  .badge-cat { cursor: pointer; }
+  .badge-cat:hover { opacity: .75; }
 
   .item-text { flex: 1; line-height: 1.45; font-size: 12px; min-width: 0; }
 
@@ -204,8 +216,10 @@
     font-family: 'JetBrains Mono', monospace;
     vertical-align: middle; margin: 0 2px;
   }
+  .date-tag.soon    { background: rgba(210,153,34,.2);  color: var(--yellow); border-color: rgba(210,153,34,.45); }
   .date-tag.today   { background: rgba(230,126,34,.22); color: var(--orange); border-color: rgba(230,126,34,.45); }
   .date-tag.overdue { background: rgba(248,81,73,.2);   color: var(--red);    border-color: rgba(248,81,73,.45); }
+  .date-tag.future  { background: rgba(63,185,80,.15);  color: var(--green);  border-color: rgba(63,185,80,.35); }
 
   .badge-p {
     display: inline-flex; align-items: center;
@@ -232,21 +246,90 @@
   .item.is-priority                 { border-left: 2px solid rgba(210,153,34,.5); }
   .item.is-priority .item-text      { font-weight: 500; }
 
-  .btn-edit-item, .btn-delete-item, .btn-note-item {
+  .btn-more-item {
     display: none; background: none; border: none; cursor: pointer;
-    font-size: 13px; padding: 0 3px; flex-shrink: 0;
+    font-size: 18px; padding: 0 4px; flex-shrink: 0; width: 28px; text-align: center;
+    line-height: 1; color: var(--muted); transition: color .12s;
+  }
+  .btn-more-item:hover { color: var(--cyan); }
+  .btn-edit-item, .btn-delete-item, .btn-note-item, .btn-progress-item, .btn-move-item, .btn-date-item {
+    display: none; background: none; border: none; cursor: pointer;
+    font-size: 13px; padding: 0 4px; flex-shrink: 0; width: 22px; text-align: center;
     line-height: 1; transition: color .12s;
   }
-  .btn-edit-item   { color: var(--border); margin-left: auto; }
-  .btn-delete-item { color: var(--border); }
-  .btn-note-item   { color: var(--border); }
-  .item:hover .btn-edit-item   { display: block; color: var(--muted); }
-  .item:hover .btn-delete-item { display: block; color: var(--muted); }
-  .item:hover .btn-note-item   { display: block; color: var(--muted); }
-  .btn-note-item.has-note      { display: block; color: var(--blue); }
-  .btn-edit-item:hover   { color: var(--cyan) !important; }
-  .btn-delete-item:hover { color: var(--red)  !important; }
-  .btn-note-item:hover   { color: var(--blue) !important; }
+  .btn-edit-item         { color: var(--border); margin-left: auto; }
+  .btn-delete-item       { color: var(--border); }
+  .btn-note-item         { color: var(--border); }
+  .btn-progress-item     { color: transparent; }
+  .item:hover .btn-edit-item, .item.item-pinned .btn-edit-item           { display: block; color: var(--muted); }
+  .item:hover .btn-delete-item, .item.item-pinned .btn-delete-item       { display: block; color: var(--muted); }
+  .item:hover .btn-note-item, .item.item-pinned .btn-note-item           { display: block; color: var(--muted); }
+  .item:hover .btn-progress-item, .item.item-pinned .btn-progress-item   { display: block; color: var(--muted); }
+  .item:hover .btn-move-item, .item.item-pinned .btn-move-item           { display: block; color: var(--muted); }
+  .item:hover .btn-date-item, .item.item-pinned .btn-date-item           { display: block; color: var(--muted); }
+  .btn-date-item:hover { color: var(--yellow) !important; }
+  .date-menu {
+    position: fixed; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 6px; z-index: 9999; box-shadow: 0 4px 16px rgba(0,0,0,.4);
+    display: flex; flex-direction: column; gap: 3px; min-width: 160px;
+  }
+  .date-menu button {
+    background: none; border: none; color: var(--text); padding: 6px 10px; border-radius: 5px;
+    cursor: pointer; text-align: left; font-size: 12px; white-space: nowrap;
+  }
+  .date-menu button:hover { background: var(--surface); color: var(--yellow); }
+  .date-menu input[type=date] {
+    width: 100%; background: var(--surface); border: 1px solid var(--border); color: var(--text);
+    border-radius: 5px; padding: 5px 8px; font-size: 12px; margin-top: 2px;
+  }
+  .btn-note-item.has-note         { display: block; color: var(--blue); }
+  .btn-progress-item.is-active    { display: block !important; color: var(--green) !important; }
+  .btn-edit-item:hover     { color: var(--cyan)   !important; }
+  .btn-delete-item:hover   { color: var(--red)    !important; }
+  .btn-note-item:hover     { color: var(--blue)   !important; }
+  .item:hover .btn-progress-item  { color: var(--muted); }
+  .btn-progress-item:hover { color: var(--green) !important; }
+  .btn-progress-item.is-active:hover { color: var(--muted) !important; }
+  .btn-move-item { color: var(--border); display: none; }
+  .item:hover .btn-move-item { display: block; color: var(--muted); }
+  .btn-move-item:hover { color: var(--cyan) !important; }
+  .move-menu {
+    position: fixed; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 4px; z-index: 9999; box-shadow: 0 4px 16px rgba(0,0,0,.4);
+    display: flex; flex-direction: column; gap: 2px; min-width: 130px;
+  }
+  .move-menu button {
+    background: none; border: none; color: var(--text); padding: 6px 10px; border-radius: 5px;
+    cursor: pointer; text-align: left; font-size: 12px; white-space: nowrap;
+  }
+  .move-menu button:hover { background: var(--surface); color: var(--cyan); }
+
+  /* ── Spotkania ── */
+  .meeting-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap: 10px; padding: 10px; }
+  .meeting-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 14px; cursor: default; transition: border-color .15s; position: relative; }
+  .meeting-card:hover { border-color: var(--purple); }
+  .meeting-avatar { width: 42px; height: 42px; border-radius: 50%; background: rgba(163,113,247,.2); border: 2px solid rgba(163,113,247,.4); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; color: var(--purple); margin-bottom: 8px; }
+  .meeting-name { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  .meeting-typ { display: inline-flex; gap: 4px; margin-bottom: 6px; flex-wrap: wrap; }
+  .meeting-badge { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 4px; text-transform: uppercase; letter-spacing: .05em; }
+  .meeting-badge.prywatne { background: rgba(248,81,73,.15); color: var(--red); border: 1px solid rgba(248,81,73,.3); }
+  .meeting-badge.biznes   { background: rgba(88,166,255,.15); color: var(--blue); border: 1px solid rgba(88,166,255,.3); }
+  .meeting-note { font-size: 11px; color: var(--muted); margin-top: 4px; line-height: 1.4; }
+  .meeting-date { font-size: 11px; color: var(--cyan); margin-top: 5px; }
+  .meeting-actions { display: flex; gap: 4px; margin-top: 10px; }
+  .meeting-btn { flex: 1; background: none; border: 1px solid var(--border); border-radius: 5px; color: var(--muted); font-size: 10px; padding: 4px; cursor: pointer; font-family: inherit; transition: all .12s; }
+  .meeting-btn:hover { border-color: var(--cyan); color: var(--text); }
+  .meeting-btn.done-btn:hover { border-color: var(--green); color: var(--green); }
+  .meeting-btn.del-btn:hover  { border-color: var(--red);   color: var(--red);   }
+  .meeting-sec-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); padding: 8px 10px 4px; }
+  .new-meeting-form { padding: 10px; display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end; border-top: 1px solid var(--border); margin-top: 4px; }
+  .new-meeting-form input, .new-meeting-form select {
+    background: var(--surface); border: 1px solid var(--border); color: var(--text);
+    border-radius: 6px; padding: 6px 10px; font-size: 12px; font-family: inherit; outline: none;
+  }
+  .new-meeting-form input:focus, .new-meeting-form select:focus { border-color: var(--purple); }
+  .new-meeting-form .btn-add-meeting { background: rgba(163,113,247,.15); border: 1px solid rgba(163,113,247,.4); color: var(--purple); border-radius: 6px; padding: 6px 14px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; }
+  .new-meeting-form .btn-add-meeting:hover { background: rgba(163,113,247,.25); }
 
   /* NOTE AREA */
   .note-row {
@@ -333,7 +416,8 @@
   }
   .add-date:focus { border-color: var(--yellow); }
   .add-date::-webkit-calendar-picker-indicator { filter: invert(.7); cursor: pointer; }
-  .toggle-pawel {
+  .toggle-pawel { display: none !important; }
+  ._toggle-pawel-placeholder {
     display: flex; align-items: center; gap: 6px;
     font-size: 12px; color: var(--muted); cursor: pointer;
     padding: 6px 10px; border-radius: 7px; border: 1px solid var(--border);
@@ -357,42 +441,96 @@
   ::-webkit-scrollbar { width: 5px; }
   ::-webkit-scrollbar-thumb { background: var(--surface2); border-radius: 3px; }
 
+  /* ── BOTTOM SHEET (mobile action menu) ── */
+  .sheet-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 500;
+    display: flex; align-items: flex-end; justify-content: center;
+    animation: fadeIn .15s;
+  }
+  @keyframes fadeIn { from { opacity:0 } to { opacity:1 } }
+  .sheet {
+    background: var(--surface); border-radius: 18px 18px 0 0;
+    width: 100%; max-width: 520px;
+    padding: 10px 0 env(safe-area-inset-bottom,16px);
+    animation: slideUp .2s cubic-bezier(.4,0,.2,1);
+  }
+  @keyframes slideUp { from { transform: translateY(100%) } to { transform: translateY(0) } }
+  .sheet-handle { width: 36px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 12px; }
+  .sheet-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); padding: 0 20px 10px; }
+  .sheet-actions { display: flex; flex-direction: column; }
+  .sheet-btn {
+    display: flex; align-items: center; gap: 14px;
+    padding: 15px 20px; font-size: 15px; font-family: inherit;
+    background: none; border: none; color: var(--text);
+    cursor: pointer; text-align: left; transition: background .1s;
+    border-top: 1px solid var(--border);
+  }
+  .sheet-btn:first-child { border-top: none; }
+  .sheet-btn:active { background: var(--surface2); }
+  .sheet-btn .sh-icon { font-size: 18px; width: 28px; text-align: center; flex-shrink: 0; }
+  .sheet-btn.sh-danger { color: var(--red); }
+  .sheet-btn.sh-active { color: var(--yellow); }
+
+  /* ── BOTTOM NAV BAR (mobile) ── */
+  .mobile-nav {
+    display: none;
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: var(--surface); border-top: 1px solid var(--border);
+    padding: 6px 4px env(safe-area-inset-bottom,6px);
+    z-index: 200; justify-content: space-around; align-items: center;
+  }
+  .mnav-btn {
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    background: none; border: none; color: var(--muted); cursor: pointer;
+    font-family: inherit; padding: 6px 12px; border-radius: 8px; transition: color .15s;
+    font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em;
+    min-width: 56px;
+  }
+  .mnav-btn .mn-icon { font-size: 20px; line-height: 1; }
+  .mnav-btn.active { color: var(--cyan); }
+  .mnav-btn:active { background: var(--surface2); }
+
   /* ── MOBILE ── */
   @media (max-width: 640px) {
-    body { padding: 10px 8px 80px; font-size: 13px; }
+    body { padding: 8px 8px env(safe-area-inset-bottom,76px); font-size: 13px; }
 
-    /* TABS — przewijalne poziomo, nie zawijają */
-    .proj-tabs {
-      flex-wrap: nowrap; overflow-x: auto; gap: 3px; padding: 4px;
-      -webkit-overflow-scrolling: touch; scrollbar-width: none;
-    }
-    .proj-tabs::-webkit-scrollbar { display: none; }
-    .proj-tab { flex: 0 0 auto; font-size: 11px; padding: 8px 11px; white-space: nowrap; }
+    /* TABS — ukryte, zastąpione przez bottom nav */
+    .proj-tabs { display: none; }
 
     /* HEADER */
-    .header { margin-bottom: 18px; }
+    .header { margin-bottom: 14px; }
     .header h1 { font-size: 17px; }
     .header p  { font-size: 11px; }
 
     /* STATS — 2 kolumny */
-    .overview { grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 14px; }
+    .overview { grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 12px; }
     .stat-card { padding: 10px 8px; }
     .stat-value { font-size: 22px; }
     .stat-label { font-size: 9px; }
 
     /* PROGRESS */
-    .main-progress { padding: 10px 12px; margin-bottom: 14px; }
+    .main-progress { padding: 10px 12px; margin-bottom: 12px; }
     .progress-label { font-size: 11px; }
     .progress-pct   { font-size: 15px; }
 
-    /* ACTIONS — 2 rzędy, mniejsze przyciski */
-    .actions { gap: 4px; }
-    .btn { font-size: 10px; padding: 6px 10px; }
+    /* ACTIONS — poziomy scroll, nie zawijają */
+    .actions {
+      flex-wrap: nowrap; overflow-x: auto; gap: 6px;
+      padding-bottom: 4px; -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .actions::-webkit-scrollbar { display: none; }
+    .btn { font-size: 11px; padding: 7px 12px; white-space: nowrap; flex-shrink: 0; }
 
-    /* FILTRY */
-    .filter-bar { gap: 4px; margin-bottom: 8px; }
-    .filter-label { font-size: 9px; }
-    .btn-filter { font-size: 10px; padding: 4px 10px; }
+    /* FILTRY — poziomy scroll */
+    .filter-bar {
+      flex-wrap: nowrap; overflow-x: auto; gap: 6px; margin-bottom: 10px;
+      -webkit-overflow-scrolling: touch; scrollbar-width: none;
+    }
+    .filter-bar::-webkit-scrollbar { display: none; }
+    .filter-label { display: none; }
+    .btn-filter { font-size: 11px; padding: 6px 12px; white-space: nowrap; flex-shrink: 0; }
+    #search-input { flex-shrink: 0; min-width: 130px; }
 
     /* WEEK VIEW — poziomy scroll */
     .week-view { overflow-x: auto; -webkit-overflow-scrolling: touch; }
@@ -403,25 +541,29 @@
     /* SEKCJE */
     .sec-header { font-size: 11px; padding: 10px 12px; }
     .sec-count  { font-size: 9px; }
-    .sec-body   { padding: 5px; }
+    .sec-body   { padding: 4px; }
 
     /* QUADRANTY */
     .q-header { padding: 9px 10px; font-size: 10px; }
     .q-desc   { display: none; }
-    .q-body   { padding: 4px; }
+    .q-body   { padding: 3px; }
 
-    /* ITEMY — duże targety dotykowe */
-    .item { padding: 11px 8px; gap: 7px; }
-    .cb   { width: 22px; height: 22px; border-radius: 5px; flex-shrink: 0; }
-    .cb.checked::after  { font-size: 12px; }
-    .cb.inprogress::after { font-size: 13px; }
-    .num  { font-size: 10px; min-width: 14px; }
+    /* ITEMY — duże targety dotykowe, czyste */
+    .item { padding: 12px 8px; gap: 8px; flex-wrap: nowrap; }
+    .cb   { width: 24px; height: 24px; border-radius: 5px; flex-shrink: 0; }
+    .cb.checked::after  { font-size: 13px; }
+    .cb.inprogress::after { font-size: 14px; }
+    .num  { display: none; }
     .drag-handle { display: none; }
     .item-text  { font-size: 13px; line-height: 1.5; }
-    /* przyciski zawsze widoczne na mobile */
-    .btn-edit-item, .btn-delete-item, .btn-note-item { display: block !important; font-size: 15px; padding: 0 3px; color: var(--muted) !important; }
-    .btn-priority { font-size: 16px; }
-    .note-row { padding-left: 40px; }
+
+    /* Na mobile: ukryj WSZYSTKIE akcje, pokaż tylko ★ i ⋯ */
+    .btn-edit-item, .btn-delete-item, .btn-note-item,
+    .btn-progress-item, .btn-move-item, .btn-date-item { display: none !important; }
+    .btn-priority { font-size: 18px; flex-shrink: 0; }
+    .btn-more-item { display: flex !important; }
+
+    .note-row { padding-left: 32px; }
 
     /* FORMULARZ DODAWANIA */
     .add-form   { padding: 12px 10px; gap: 8px; }
@@ -433,9 +575,8 @@
     .btn-add    { width: 100%; margin-left: 0; padding: 11px; font-size: 13px; }
     .btn-mic    { width: 44px; height: 44px; font-size: 18px; }
 
-    /* IO ROW */
-    .io-row { gap: 5px; }
-    .btn-io { font-size: 10px; padding: 6px 10px; }
+    /* IO ROW — ukryty na mobile (jest w menu) */
+    .io-row { display: none; }
 
     /* DONE SUBS */
     .done-sub-hd { font-size: 10px; padding: 8px 10px; }
@@ -445,9 +586,9 @@
     .log-body { max-height: 130px; }
     .log-entry { font-size: 10px; }
 
-    /* VOICE FAB */
-    .voice-fab    { bottom: 14px; right: 14px; width: 48px; height: 48px; font-size: 20px; }
-    .voice-status { bottom: 70px; right: 14px; max-width: calc(100vw - 28px); }
+    /* VOICE FAB — przesuń żeby nie nachodził na nav */
+    .voice-fab    { bottom: 70px; right: 14px; width: 48px; height: 48px; font-size: 20px; }
+    .voice-status { bottom: 130px; right: 14px; max-width: calc(100vw - 28px); }
 
     /* EDIT MODE */
     .item-edit-text  { font-size: 14px; }
@@ -457,7 +598,10 @@
     .btn-save-edit, .btn-cancel-edit { width: 100%; padding: 9px; font-size: 12px; text-align: center; }
 
     /* TOAST */
-    .toast { bottom: 70px; right: 10px; left: 10px; text-align: center; font-size: 12px; }
+    .toast { bottom: 76px; right: 10px; left: 10px; text-align: center; font-size: 12px; }
+
+    /* BOTTOM NAV */
+    .mobile-nav { display: flex; }
   }
 
   /* MIC BUTTON */
@@ -528,11 +672,57 @@
   .log-ts   { flex-shrink: 0; font-size: 9px; color: var(--muted); font-family: 'JetBrains Mono',monospace; white-space: nowrap; }
   .log-empty { text-align: center; padding: 14px; font-size: 11px; color: var(--border); }
 
+  /* CALENDAR */
+  .cal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:200; display:flex; align-items:center; justify-content:center; }
+  .cal-modal { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:20px; width:min(520px,95vw); max-height:90vh; overflow-y:auto; }
+  .cal-header { display:flex; align-items:center; gap:8px; margin-bottom:16px; }
+  .cal-title { flex:1; text-align:center; font-size:14px; font-weight:700; color:var(--text); }
+  .cal-nav,.cal-close { background:var(--surface2); border:1px solid var(--border); border-radius:6px; padding:4px 10px; color:var(--muted); cursor:pointer; font-size:14px; transition:all .12s; }
+  .cal-nav:hover,.cal-close:hover { color:var(--text); border-color:var(--cyan); }
+  .cal-days-hd { display:grid; grid-template-columns:repeat(7,1fr); gap:3px; margin-bottom:4px; }
+  .cal-day-lbl { text-align:center; font-size:10px; color:var(--muted); font-weight:600; padding:4px 0; text-transform:uppercase; }
+  .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:3px; }
+  .cal-cell { min-height:60px; background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:4px; }
+  .cal-cell.today { border-color:var(--orange); background:rgba(230,126,34,.06); }
+  .cal-cell.other-month { opacity:.35; }
+  .cal-cell-num { font-size:10px; font-weight:700; color:var(--muted); margin-bottom:2px; font-family:'JetBrains Mono',monospace; }
+  .cal-cell.today .cal-cell-num { color:var(--orange); }
+  .cal-task { font-size:9px; padding:1px 4px; border-radius:3px; margin-bottom:1px; background:rgba(57,208,200,.15); color:var(--cyan); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:default; }
+  .cal-task.done { background:rgba(63,185,80,.12); color:var(--green); text-decoration:line-through; }
+  .cal-task.inprogress { background:rgba(230,126,34,.15); color:var(--orange); }
+
+  /* BULK TOOLBAR */
+  .item.selected { background:rgba(57,208,200,.08) !important; border-color:var(--cyan) !important; }
+  .bulk-toolbar { display:none !important; }
+  .bulk-count { font-size:12px; font-weight:700; color:var(--cyan); }
+  .btn-bulk { padding:5px 12px; border-radius:6px; border:1px solid var(--border); background:var(--surface2); color:var(--muted); font-size:11px; font-weight:600; cursor:pointer; font-family:inherit; transition:all .12s; }
+  .btn-bulk:hover { border-color:var(--cyan); color:var(--text); }
+
+  /* SELECTOR CHECKBOX */
+  .sel-cb { width:14px; height:14px; border-radius:3px; border:1.5px solid var(--border); flex-shrink:0; margin-top:2px; cursor:pointer; transition:all .15s; }
+  .item:hover .sel-cb { border-color:var(--cyan); }
+  .item.selected .sel-cb { background:var(--cyan); border-color:var(--cyan); }
+  .item.selected .sel-cb::after { content:'✓'; font-size:9px; color:#000; font-weight:900; display:flex; align-items:center; justify-content:center; line-height:14px; }
+
   /* PROJECT TABS */
   .proj-tabs { display: flex; gap: 4px; margin-bottom: 20px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 6px; flex-wrap: wrap; }
   .proj-tab { flex: 1; padding: 7px 10px; border-radius: 7px; border: 1px solid transparent; font-size: 11px; font-weight: 600; cursor: pointer; font-family: inherit; background: transparent; color: var(--muted); transition: all .15s; text-align: center; white-space: nowrap; min-width: 0; }
   .proj-tab:hover { color: var(--text); background: var(--surface2); }
-  .proj-tab.active { background: var(--surface2); color: var(--cyan); border-color: rgba(57,208,200,.3); }
+  .proj-tab.active { background: var(--surface2); border-color: currentColor; opacity: 1; }
+  .proj-tab:not([style]) .proj-tab.active { color: var(--cyan); border-color: rgba(57,208,200,.3); }
+
+  .proj-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; padding: 8px 0; }
+  .proj-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: 20px 18px; cursor: pointer; transition: all .18s;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .proj-card:hover { border-color: var(--purple); background: rgba(188,140,255,.06); transform: translateY(-2px); }
+  .proj-card-icon { font-size: 28px; }
+  .proj-card-title { font-size: 14px; font-weight: 700; color: var(--text); }
+  .proj-card-desc { font-size: 11px; color: var(--muted); }
+  .proj-card-count { font-size: 11px; color: var(--purple); font-family: 'JetBrains Mono', monospace; margin-top: auto; }
+  .proj-back { margin-bottom: 12px; }
 </style>
 </head>
 <body>
@@ -540,22 +730,25 @@
 
   <div class="proj-tabs">
     <button class="proj-tab active" onclick="switchProject('general')" id="pt-general">📋 Wszystkie</button>
-    <button class="proj-tab" onclick="switchProject('prywatne')" id="pt-prywatne">🔵 Prywatne</button>
-    <button class="proj-tab" onclick="switchProject('dp')" id="pt-dp">🎬 DP</button>
-    <button class="proj-tab" onclick="switchProject('wideo')" id="pt-wideo">📱 Wideo na Socjale</button>
-    <button class="proj-tab" onclick="switchProject('szpilki')" id="pt-szpilki">🎭 Zdunek</button>
+    <button class="proj-tab" onclick="switchProject('prywatne')" id="pt-prywatne" style="color:var(--red)">🔴 Prywatne</button>
+    <button class="proj-tab" onclick="switchProject('dp')" id="pt-dp" style="color:var(--blue)">🎬 DOP</button>
+    <button class="proj-tab" onclick="switchProject('vns')" id="pt-vns" style="color:var(--orange)">📱 VNS</button>
+    <button class="proj-tab" onclick="switchProject('projekty')" id="pt-projekty" style="color:var(--purple)">📂 Projekty</button>
+    <button class="proj-tab" onclick="switchProject('vibecoding')" id="pt-vibecoding" style="color:var(--purple)">💻 Vibe Coding</button>
+    <button class="proj-tab" onclick="switchProject('telegram')" id="pt-telegram" style="color:var(--cyan)">📲 Telegram</button>
+    <button class="proj-tab" onclick="switchProject('spotkania')" id="pt-spotkania" style="color:var(--purple)">🤝 Spotkania</button>
   </div>
 
   <div class="header">
-    <h1 id="proj-title">Lista Zadań AI</h1>
-    <p>Jakub Sztuk · Video Na Sociale · <span id="last-saved">—</span></p>
+    <h1 id="proj-title">Wszystkie zadania</h1>
+    <p>Jakub Sztuk · <span id="last-saved">—</span> · <span id="sb-status" title="Supabase" style="color:var(--muted);font-size:11px">☁ …</span></p>
   </div>
 
   <div class="overview">
     <div class="stat-card"><div class="stat-value" id="s-q1" style="color:var(--red)">0</div><div class="stat-label">🔴 Teraz</div></div>
     <div class="stat-card"><div class="stat-value" id="s-q2" style="color:var(--yellow)">0</div><div class="stat-label">🟡 Zaplanuj</div></div>
     <div class="stat-card"><div class="stat-value" id="s-done" style="color:var(--green)">0</div><div class="stat-label">✓ Zrobione</div></div>
-    <div class="stat-card"><div class="stat-value" id="s-pawel" style="color:var(--purple)">0</div><div class="stat-label">❓ Paweł</div></div>
+    <div class="stat-card"><div class="stat-value" id="s-inprogress" style="color:var(--orange)">0</div><div class="stat-label">⏳ W trakcie</div></div>
   </div>
 
   <div class="main-progress">
@@ -569,6 +762,7 @@
     <button class="btn" onclick="resetChecked()">↺ Resetuj</button>
     <button class="btn" onclick="toggleAll()">↕ Zwiń / Rozwiń</button>
     <button class="btn btn-week" id="btn-week" onclick="toggleWeekView()">📅 Tydzień</button>
+    <button class="btn" onclick="toggleCalendar()" id="btn-cal">🗓 Kalendarz</button>
     <button class="btn" onclick="saveState()">💾 Zapisz</button>
   </div>
 
@@ -578,14 +772,11 @@
     <button class="btn-filter"        id="f-priority"   onclick="setFilter('priority')">★ Priorytet</button>
     <button class="btn-filter"        id="f-inprogress" onclick="setFilter('inprogress')" style="color:var(--orange)">… W trakcie</button>
     <button class="btn-filter"        id="f-today"      onclick="setFilter('today')">📅 Dziś</button>
-    <button class="btn-filter"        id="f-pawel"      onclick="setFilter('pawel')">[P] Paweł</button>
-  </div>
-  <div class="filter-bar" style="margin-top:-8px">
-    <span class="filter-label">Kat:</span>
-    <button class="btn-filter" id="f-prywatne" onclick="setFilter('prywatne')" style="color:var(--blue)">Prywatne</button>
-    <button class="btn-filter" id="f-firmowe"  onclick="setFilter('firmowe')"  style="color:var(--green)">Firmowe</button>
-    <button class="btn-filter" id="f-dop"      onclick="setFilter('dop')"      style="color:var(--orange)">DOP</button>
-    <button class="btn-filter" id="f-projekty" onclick="setFilter('projekty')" style="color:var(--purple)">Projekty</button>
+    <button class="btn-filter"        id="f-overdue"    onclick="setFilter('overdue')" style="color:var(--red)">🔴 Przeterminowane</button>
+    <input id="search-input" type="text" placeholder="🔍 Szukaj…" oninput="setSearch(this.value)"
+      style="background:var(--surface);border:1px solid var(--border);color:var(--text);
+             border-radius:6px;padding:4px 10px;font-size:12px;font-family:inherit;width:160px;outline:none;"
+      onfocus="this.style.borderColor='var(--cyan)'" onblur="this.style.borderColor='var(--border)'">
   </div>
 
   <div class="week-view" id="week-view-card"></div>
@@ -598,10 +789,9 @@
     <div class="add-row">
       <select class="add-select" id="new-cat">
         <option value="">— Kategoria —</option>
-        <option value="prywatne">🔵 Prywatne</option>
-        <option value="firmowe">🟢 Firmowe</option>
-        <option value="dop">🟠 DOP</option>
-        <option value="projekty">🟣 Projekty</option>
+        <option value="prywatne">🔴 Prywatne</option>
+        <option value="dp">🟠 DOP</option>
+        <option value="vns">🔵 VNS</option>
       </select>
       <select class="add-select" id="new-sec" onchange="onSecChange()">
         <option value="todo">📋 Do Zrobienia</option>
@@ -649,7 +839,101 @@
 </div>
 <button class="voice-fab" id="voice-fab" onclick="toggleGlobalMic()" title="Komenda głosowa (kliknij i mów)">🎙️</button>
 
+<div class="cal-overlay" id="cal-overlay" style="display:none">
+  <div class="cal-modal">
+    <div class="cal-header">
+      <button class="cal-nav" onclick="calPrev()">‹</button>
+      <span class="cal-title" id="cal-title"></span>
+      <button class="cal-nav" onclick="calNext()">›</button>
+      <button class="cal-close" onclick="toggleCalendar()">✕</button>
+    </div>
+    <div id="cal-grid-wrap">
+      <div class="cal-grid" id="cal-grid"></div>
+    </div>
+  </div>
+</div>
+
+<div class="bulk-toolbar" id="bulk-toolbar" style="display:none">
+  <span class="bulk-count" id="bulk-count">0 zaznaczonych</span>
+  <input class="add-date" id="bulk-date" type="date" style="width:140px;padding:5px 8px;" title="Przypisz datę">
+  <button class="btn-bulk" onclick="applyBulkDate()">📅 Dodaj datę</button>
+  <button class="btn-bulk" onclick="applyBulkStatus('inprogress')">⏳ W trakcie</button>
+  <button class="btn-bulk" onclick="clearSelection()" style="color:var(--muted)">✕ Odznacz</button>
+</div>
+
 <script>
+// ════════════════════════════════════════
+//  SUPABASE
+// ════════════════════════════════════════
+const SUPABASE_URL = 'https://xvewgjnxtipvqyqswjia.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh2ZXdnam54dGlwdnF5cXN3amlhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA5NzQ3MDgsImV4cCI6MjA5NjU1MDcwOH0.XnQnxZcevO_JojRy3mb-r6zdo_2LR9x2AneMdNHbGuw';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+function itemToRow(item, proj) {
+  return {
+    id: item.id, project: proj,
+    sec: item.sec, quad: item.quad || null, text: item.text,
+    checked: item.checked || false, in_progress: item.inProgress || false,
+    priority: item.priority || false, pawel: item.pawel || false,
+    cat: item.cat || null, note: item.note || '',
+    completed_at: item.completedAt || null,
+    prev_sec: item._prevSec || null, prev_quad: item._prevQuad || null,
+  };
+}
+
+function rowToItem(row) {
+  return {
+    id: row.id, sec: row.sec, quad: row.quad, text: row.text,
+    checked: row.checked, inProgress: row.in_progress,
+    priority: row.priority, pawel: row.pawel,
+    cat: row.cat, note: row.note || '',
+    completedAt: row.completed_at,
+    _prevSec: row.prev_sec, _prevQuad: row.prev_quad,
+  };
+}
+
+async function sbFetch(projectKey) {
+  try {
+    const { data, error } = await sb.from('tasks').select('*').eq('project', projectKey);
+    if (error) throw error;
+    return data.map(rowToItem);
+  } catch(e) { console.warn('sbFetch', e); return null; }
+}
+
+async function sbSave(projectItems, projectKey) {
+  if (!projectItems.length) return;
+  try {
+    await sb.from('tasks').upsert(projectItems.map(i => itemToRow(i, projectKey)), { onConflict: 'id' });
+  } catch(e) { console.warn('sbSave', e); }
+}
+
+async function sbDelete(id) {
+  try { await sb.from('tasks').delete().eq('id', id); } catch(e) {}
+}
+
+async function syncFromSupabase() {
+  try {
+    if (activeProject === 'general') {
+      const results = await Promise.all(CAT_PROJECTS.map(k => sbFetch(k)));
+      const merged = [];
+      CAT_PROJECTS.forEach((catKey, i) => {
+        const src = results[i] || loadCatItems(catKey);
+        src.forEach(item => { if (!item.cat) item.cat = catKey; merged.push(item); });
+      });
+      items = merged;
+    } else if (activeProject !== 'projekty') {
+      const remote = await sbFetch(activeProject);
+      if (remote && remote.length) items = remote;
+    } else return;
+    render();
+    const sbEl = document.getElementById('sb-status');
+    if (sbEl) sbEl.innerHTML = '<span style="color:var(--green)">☁ online</span>';
+  } catch(e) {
+    const sbEl = document.getElementById('sb-status');
+    if (sbEl) sbEl.innerHTML = '<span style="color:var(--red)">☁ offline</span>';
+  }
+}
+
 // ════════════════════════════════════════
 //  DATA
 // ════════════════════════════════════════
@@ -670,11 +954,24 @@ const QUADS_COLLAPSED     = { q1:false, q2:false, q3:true, q4:true };
 const DONE_SUBS_COLLAPSED = { 'ds-todo':false, 'ds-ai':false, 'ds-pawel':false };
 
 const SECTIONS_DEF = [
-  { id:'todo',  label:'Do Zrobienia',  color:'var(--cyan)',   collapsed:false },
-  { id:'ai',    label:'Pytania do AI', color:'var(--blue)',   collapsed:true  },
-  { id:'pawel', label:'Pytania do Pawła', color:'var(--purple)', collapsed:true  },
-  { id:'done',  label:'Zrobione ✓',   color:'var(--green)',  collapsed:true  },
+  { id:'todo',        label:'Do Zrobienia',    color:'var(--cyan)',   collapsed:false },
+  { id:'zaplanowane', label:'Zaplanowane 📅',  color:'var(--blue)',   collapsed:false },
+  { id:'ai',          label:'Pytania do AI',   color:'var(--blue)',   collapsed:true  },
+  { id:'pawel',       label:'Pytania do Pawła',color:'var(--purple)', collapsed:true  },
+  { id:'done',        label:'Zrobione ✓',      color:'var(--green)',  collapsed:true  },
 ];
+
+const SECTIONS_BY_PROJECT = {
+  general:    ['todo', 'done'],
+  prywatne:   ['todo', 'done'],
+  dp:         ['todo', 'done'],
+  vns:        ['todo', 'done'],
+  projekty:   ['todo', 'done'],
+  szpilki:    ['todo', 'done'],
+  vibecoding: ['todo', 'ai', 'pawel', 'done'],
+  telegram:    ['todo', 'done'],
+  spotkania:   ['todo', 'zaplanowane', 'done'],
+};
 
 const DEFAULT_ITEMS = [
   { id:'t1',  sec:'todo', quad:'q1', checked:false, priority:false, pawel:true,  note:'', text:'Synchronizacja 3 kalendarzy Google (firmowy, freelance, prywatny) — 22.05' },
@@ -752,12 +1049,49 @@ const DEFAULT_ITEMS_WIDEO = [
 ];
 
 const PROJECTS = {
-  general:  { label: 'Wszystkie',         storageKey: 'ai-lista-v5',        defaultItems: DEFAULT_ITEMS },
-  prywatne: { label: 'Prywatne',          storageKey: 'ai-lista-prywatne',  defaultItems: DEFAULT_ITEMS_PRYWATNE },
-  dp:       { label: 'DP',                storageKey: 'ai-lista-dp',        defaultItems: [] },
-  wideo:    { label: 'Wideo na Socjale',  storageKey: 'ai-lista-wideo',     defaultItems: DEFAULT_ITEMS_WIDEO },
-  szpilki:  { label: 'Zdunek — Szpilki', storageKey: 'ai-lista-szpilki',   defaultItems: DEFAULT_ITEMS_SZPILKI },
+  general:    { label: 'Wszystkie',         storageKey: 'ai-lista-v5',          defaultItems: DEFAULT_ITEMS,          catKey: null       },
+  prywatne:   { label: 'Prywatne',          storageKey: 'ai-lista-prywatne',    defaultItems: DEFAULT_ITEMS_PRYWATNE, catKey: 'prywatne' },
+  dp:         { label: 'DOP',               storageKey: 'ai-lista-dp',          defaultItems: [],                     catKey: 'dp'       },
+  vns:        { label: 'VNS',               storageKey: 'ai-lista-vns',         defaultItems: DEFAULT_ITEMS_WIDEO,    catKey: 'vns'      },
+  szpilki:    { label: 'Zdunek — Szpilki', storageKey: 'ai-lista-szpilki',     defaultItems: DEFAULT_ITEMS_SZPILKI,  catKey: null       },
+  vibecoding: { label: 'Vibe Coding',       storageKey: 'ai-lista-vibecoding',  defaultItems: [],                     catKey: null       },
+  telegram:   { label: 'Telegram',          storageKey: 'ai-lista-telegram',    defaultItems: [],                     catKey: 'telegram'  },
+  spotkania:  { label: 'Spotkania',         storageKey: 'ai-lista-spotkania',   defaultItems: [],                     catKey: null        },
 };
+
+const CAT_PROJECTS = ['prywatne', 'dp', 'vns', 'telegram'];
+const SUB_PROJECTS = {
+  szpilki: { label: 'Zdunek — Szpilki', icon: '🎭', desc: 'Teledysk / produkcja' },
+};
+
+function loadCatItems(catKey) {
+  const proj = PROJECTS[catKey];
+  let catItems = JSON.parse(JSON.stringify(proj.defaultItems));
+  try {
+    const raw = localStorage.getItem(proj.storageKey);
+    if (raw) { const s = JSON.parse(raw); if (s.items) catItems = s.items; }
+  } catch(e) {}
+  catItems.forEach(i => {
+    if (!i.cat)        i.cat        = catKey;
+    if (!i.inProgress) i.inProgress = false;
+    if (!i.note)       i.note       = '';
+    if (i.priority === undefined) i.priority = false;
+  });
+  return catItems;
+}
+
+function loadAggregateItems() {
+  return CAT_PROJECTS.flatMap(k => loadCatItems(k));
+}
+
+function saveAggregateItems() {
+  CAT_PROJECTS.forEach(catKey => {
+    const catItems = items.filter(i => i.cat === catKey);
+    if (!catItems.length && !localStorage.getItem(PROJECTS[catKey].storageKey)) return;
+    const state = { _saved: new Date().toISOString(), items: catItems };
+    localStorage.setItem(PROJECTS[catKey].storageKey, JSON.stringify(state));
+  });
+}
 
 let activeProject = 'general';
 
@@ -766,6 +1100,7 @@ let sections = JSON.parse(JSON.stringify(SECTIONS_DEF));
 let dragState = { id: null };
 let editingId = null;
 let activeFilter = 'all';
+let activeSearch = '';
 let weekViewOpen = false;
 const openNotes = new Set();
 
@@ -863,8 +1198,10 @@ function highlightDates(text) {
       let label = match;
       if (dt) {
         const diffDays = Math.round((dt - TODAY) / 86400000);
-        if      (dt < TODAY)                       cls += ' overdue';
-        else if (dt.getTime() === TODAY.getTime()) cls += ' today';
+        if      (diffDays < 0)   cls += ' overdue';
+        else if (diffDays === 0) cls += ' today';
+        else if (diffDays <= 3)  cls += ' soon';
+        else                     cls += ' future';
         const dayName = DAY_SHORT[dt.getDay()];
         let counter = '';
         if      (diffDays === 0)  counter = ' dziś';
@@ -892,8 +1229,13 @@ function fmtTs(iso) {
 }
 
 function getItemDate(item) {
-  const m = item.text.match(/\d{1,2}[.\/-]\d{2}(?:[.\/-]\d{2,4})?/);
-  return m ? parseDate(m[0]) : null;
+  // czyta TYLKO z note (prefix 📅), nie z tekstu — daty w tekście to opis, nie termin
+  const m = (item.note || '').match(/📅\s*(\d{1,2}\.\d{2}(?:\.\d{2,4})?)/);
+  return m ? parseDate(m[1]) : null;
+}
+function getItemDateStr(item) {
+  const m = (item.note || '').match(/📅\s*(\d{1,2}\.\d{2}(?:\.\d{2,4})?)/);
+  return m ? m[1] : null;
 }
 
 // ════════════════════════════════════════
@@ -901,7 +1243,7 @@ function getItemDate(item) {
 // ════════════════════════════════════════
 function setFilter(f) {
   activeFilter = f;
-  ['all','priority','pawel','today','inprogress','prywatne','firmowe','dop','projekty'].forEach(k => {
+  ['all','priority','today','overdue','inprogress','prywatne','firmowe','dop','projekty'].forEach(k => {
     const el = document.getElementById('f-'+k);
     if (el) el.classList.toggle('active', k === f);
   });
@@ -923,7 +1265,23 @@ function applyFilter(list) {
       return dt && dt.getTime() === TODAY.getTime();
     });
   }
+  if (activeFilter === 'overdue') {
+    return list.filter(i => {
+      const dt = getItemDate(i);
+      return dt && dt < TODAY && !i.checked;
+    });
+  }
   return list;
+}
+
+function setSearch(val) {
+  activeSearch = val.trim().toLowerCase();
+  render();
+}
+
+function applySearch(list) {
+  if (!activeSearch) return list;
+  return list.filter(i => i.text.toLowerCase().includes(activeSearch) || (i.note||'').toLowerCase().includes(activeSearch));
 }
 
 // ════════════════════════════════════════
@@ -983,13 +1341,220 @@ function renderWeekView() {
 }
 
 // ════════════════════════════════════════
+//  PROJECTS VIEW
+// ════════════════════════════════════════
+function renderProjectsView() {
+  renderWeekView();
+  const wrap = document.getElementById('sections-wrap');
+  wrap.innerHTML = '';
+  const grid = document.createElement('div');
+  grid.className = 'proj-grid';
+
+  let totalAll = 0, doneAll = 0;
+
+  Object.entries(SUB_PROJECTS).forEach(([key, meta]) => {
+    let projectItems = [];
+    try {
+      const raw = localStorage.getItem(PROJECTS[key] && PROJECTS[key].storageKey);
+      const data = raw ? JSON.parse(raw) : null;
+      projectItems = data && data.items ? data.items : (PROJECTS[key] ? PROJECTS[key].defaultItems : []);
+    } catch(e) { projectItems = PROJECTS[key] ? PROJECTS[key].defaultItems : []; }
+
+    const count = projectItems.filter(i => !i.checked).length;
+    const done  = projectItems.filter(i => i.checked).length;
+    totalAll += projectItems.length;
+    doneAll  += done;
+
+    const card = document.createElement('div');
+    card.className = 'proj-card';
+    card.innerHTML = `
+      <div class="proj-card-icon">${meta.icon}</div>
+      <div class="proj-card-title">${meta.label}</div>
+      <div class="proj-card-desc">${meta.desc}</div>
+      <div class="proj-card-count">${count} zadań do zrobienia</div>
+    `;
+    card.onclick = () => openSubProject(key);
+    grid.appendChild(card);
+  });
+
+  wrap.appendChild(grid);
+
+  // update stats & progress bar with aggregate data
+  const pct = totalAll > 0 ? Math.round(doneAll / totalAll * 100) : 0;
+  const s_done = document.getElementById('s-done');
+  const s_pct  = document.getElementById('pct');
+  const s_bar  = document.getElementById('bar');
+  if (s_done) s_done.textContent = doneAll;
+  if (s_pct)  s_pct.textContent  = pct + '%';
+  if (s_bar)  s_bar.style.width  = pct + '%';
+
+  const s_q1 = document.getElementById('s-q1');
+  const s_q2 = document.getElementById('s-q2');
+  const s_ip = document.getElementById('s-inprogress');
+  if (s_q1) s_q1.textContent = totalAll - doneAll;
+  if (s_q2) s_q2.textContent = 0;
+  if (s_ip) s_ip.textContent = 0;
+}
+
+// ════════════════════════════════════════
 //  RENDER
 // ════════════════════════════════════════
+// ════════════════════════════════════════
+//  SPOTKANIA VIEW
+// ════════════════════════════════════════
+function initials(name) {
+  return name.split(/\s+/).slice(0,2).map(w => w[0]||'').join('').toUpperCase() || '?';
+}
+function renderSpotkania() {
+  document.getElementById('week-view-card').innerHTML = '';
+  const wrap = document.getElementById('sections-wrap');
+  wrap.innerHTML = '';
+
+  const SECS = [
+    { id:'todo',        label:'📋 Do zaplanowania' },
+    { id:'zaplanowane', label:'📅 Zaplanowane'     },
+    { id:'done',        label:'✅ Odbyte'           },
+  ];
+
+  SECS.forEach(({ id, label }) => {
+    const secItems = items.filter(i => i.sec === id);
+    const block = document.createElement('div');
+    block.innerHTML = `<div class="meeting-sec-label">${label} <span style="color:var(--border)">(${secItems.length})</span></div>`;
+    const grid = document.createElement('div');
+    grid.className = 'meeting-grid';
+
+    secItems.forEach(item => {
+      const card = document.createElement('div');
+      card.className = 'meeting-card';
+      const typs = (item.cat||'').split(',').map(s=>s.trim()).filter(Boolean);
+      const noteWithoutDate = (item.note||'').replace(/📅[\d\.]+/g,'').trim();
+      const dateStr = getItemDateStr(item);
+      card.innerHTML = `
+        <div class="meeting-avatar">${initials(item.text)}</div>
+        <div class="meeting-name">${escHtml(item.text)}</div>
+        <div class="meeting-typ">
+          ${typs.includes('prywatne') ? '<span class="meeting-badge prywatne">Prywatne</span>' : ''}
+          ${typs.includes('biznes')   ? '<span class="meeting-badge biznes">Biznes</span>' : ''}
+        </div>
+        ${dateStr ? `<div class="meeting-date">📅 ${dateStr}</div>` : ''}
+        ${noteWithoutDate ? `<div class="meeting-note">${escHtml(noteWithoutDate)}</div>` : ''}
+        <div class="meeting-actions">
+          ${id === 'todo'        ? `<button class="meeting-btn" onclick="moveMeeting('${item.id}','zaplanowane')">📅 Zaplanuj</button>` : ''}
+          ${id === 'zaplanowane' ? `<button class="meeting-btn" onclick="moveMeeting('${item.id}','todo')">↩ Cofnij</button>` : ''}
+          ${id !== 'done'        ? `<button class="meeting-btn done-btn" onclick="moveMeeting('${item.id}','done')">✅ Odbyte</button>` : ''}
+          <button class="meeting-btn del-btn" onclick="deleteMeeting('${item.id}')">✕</button>
+        </div>`;
+      grid.appendChild(card);
+    });
+
+    if (secItems.length === 0 && id === 'todo') {
+      grid.innerHTML = '<div style="padding:10px;font-size:11px;color:var(--border)">Brak spotkań do zaplanowania</div>';
+    }
+    block.appendChild(grid);
+    wrap.appendChild(block);
+  });
+
+  // formularz nowego spotkania
+  const form = document.createElement('div');
+  form.className = 'new-meeting-form';
+  form.innerHTML = `
+    <input id="nm-name" placeholder="Osoba — imię i nazwisko" style="flex:2;min-width:160px">
+    <select id="nm-typ">
+      <option value="prywatne">Prywatne</option>
+      <option value="biznes">Biznes</option>
+      <option value="prywatne,biznes">Oba</option>
+    </select>
+    <input id="nm-date" type="date" title="Data spotkania (opcjonalna)">
+    <input id="nm-note" placeholder="Notatka (opcjonalna)" style="flex:2;min-width:140px">
+    <button class="btn-add-meeting" onclick="addMeeting()">+ Dodaj</button>`;
+  wrap.appendChild(form);
+}
+
+function addMeeting(name, typ, dateStr, note) {
+  const nm = name || document.getElementById('nm-name')?.value.trim();
+  if (!nm) { document.getElementById('nm-name')?.focus(); return; }
+  const t = typ  || document.getElementById('nm-typ')?.value  || 'prywatne';
+  const d = dateStr || (()=>{ const v=document.getElementById('nm-date')?.value; if(!v) return ''; const dt=new Date(v); return (dt.getDate()).toString().padStart(2,'0')+'.'+(dt.getMonth()+1).toString().padStart(2,'0'); })();
+  const n = note || document.getElementById('nm-note')?.value.trim() || '';
+  const row = {
+    id: crypto.randomUUID(), project:'spotkania', sec:'todo', quad:'q2',
+    text: nm, checked:false, in_progress:false, priority:false, pawel:false,
+    cat: t, note: (d ? '📅'+d+'\n' : '') + n, completed_at:null, prev_sec:null, prev_quad:null,
+  };
+  sb.table('tasks').insert(row).catch(e => console.warn(e));
+  items.push({ id:row.id, sec:'todo', quad:'q2', text:nm, checked:false, inProgress:false, priority:false, pawel:false, cat:t, note:row.note, completedAt:null, _prevSec:null, _prevQuad:null });
+  renderSpotkania();
+  if (document.getElementById('nm-name')) {
+    document.getElementById('nm-name').value = '';
+    document.getElementById('nm-date').value = '';
+    document.getElementById('nm-note').value = '';
+  }
+}
+
+function moveMeeting(id, targetSec) {
+  const item = items.find(i => i.id === id);
+  if (!item) return;
+  item.sec = targetSec;
+  item.checked = targetSec === 'done';
+  sb.table('tasks').update({sec: targetSec, checked: item.checked}).eq('id', id).catch(e => console.warn(e));
+  renderSpotkania();
+}
+
+function deleteMeeting(id) {
+  items = items.filter(i => i.id !== id);
+  sb.table('tasks').delete().eq('id', id).catch(e => console.warn(e));
+  renderSpotkania();
+}
+
 function render() {
+  if (activeProject === 'projekty') { renderProjectsView(); return; }
+  if (activeProject === 'spotkania') { renderSpotkania(); return; }
+
   renderWeekView();
 
   const wrap = document.getElementById('sections-wrap');
   wrap.innerHTML = '';
+
+  // ── Overdue block ──────────────────────────────────────────────────────────
+  const overdue = items.filter(i => !i.checked && (() => { const dt = getItemDate(i); return dt && dt < TODAY; })());
+  const makeOverdueBlock = () => {
+    const od = document.createElement('div');
+    od.className = 'section overdue-block';
+    const hasItems = overdue.length > 0;
+    od.style.cssText = hasItems
+      ? 'border-color:rgba(248,81,73,.5);background:rgba(248,81,73,.06)'
+      : 'border-color:rgba(248,81,73,.2);opacity:.5';
+    od.innerHTML = `<div class="sec-header" style="color:var(--red)">
+      <span class="sec-chevron" style="${hasItems?'':'transform:rotate(-90deg)'}">▾</span>
+      <span class="sec-title">${hasItems ? '🔴' : '✅'} Przeterminowane</span>
+      ${hasItems ? `<span class="sec-count">${overdue.length}</span>` : ''}
+    </div><div class="sec-body" style="${hasItems?'':'display:none'}" id="od-body"></div>`;
+    if (hasItems) {
+      const body = od.querySelector('#od-body');
+      overdue.forEach((item, idx) => body.appendChild(makeItem(item, idx + 1)));
+    }
+    od.querySelector('.sec-header').addEventListener('click', () => {
+      const chev = od.querySelector('.sec-chevron');
+      const b = od.querySelector('.sec-body');
+      const hidden = b.style.display === 'none';
+      b.style.display = hidden ? '' : 'none';
+      chev.style.transform = hidden ? '' : 'rotate(-90deg)';
+    });
+    return od;
+  };
+  if (overdue.length) wrap.insertBefore(makeOverdueBlock(), wrap.firstChild);
+  else wrap._overdueBlock = makeOverdueBlock(); // append at end after sections render
+  // ──────────────────────────────────────────────────────────────────────────
+
+  // Back button when inside a sub-project
+  if (projectsSubView) {
+    const back = document.createElement('button');
+    back.className = 'btn proj-back';
+    back.innerHTML = '← Projekty';
+    back.style.color = 'var(--purple)';
+    back.onclick = () => switchProject('projekty');
+    wrap.appendChild(back);
+  }
 
   sections.forEach(sec => {
     const secItems = items.filter(i => i.sec === sec.id);
@@ -1020,6 +1585,8 @@ function render() {
     }
   });
 
+  if (wrap._overdueBlock) { wrap.appendChild(wrap._overdueBlock); delete wrap._overdueBlock; }
+
   updateStats();
 }
 
@@ -1037,7 +1604,14 @@ function renderMatrix(body) {
 
   QUADS.forEach(q => {
     const raw = items.filter(i => i.sec === 'todo' && i.quad === q.id && !i.checked);
-    const filtered = applyFilter(raw).sort((a, b) => (b.priority ? 1 : 0) - (a.priority ? 1 : 0));
+    const filtered = applySearch(applyFilter(raw)).sort((a, b) => {
+      if (a.priority !== b.priority) return a.priority ? -1 : 1;
+      const da = getItemDate(a), db = getItemDate(b);
+      if (da && !db) return -1;
+      if (!da && db) return 1;
+      if (da && db) return da - db;
+      return 0;
+    });
     const collapsed = QUADS_COLLAPSED[q.id];
 
     const qEl = document.createElement('div');
@@ -1074,7 +1648,15 @@ function renderMatrix(body) {
 
 // ── Flat list ──
 function renderFlatList(body, sec, secItems) {
-  const filtered = applyFilter(secItems).sort((a, b) => (b.priority ? 1 : 0) - (a.priority ? 1 : 0));
+  const filtered = applySearch(applyFilter(secItems)).sort((a, b) => {
+    if (sec.id === 'done') return 0;
+    if (a.priority !== b.priority) return a.priority ? -1 : 1;
+    const da = getItemDate(a), db = getItemDate(b);
+    if (da && !db) return -1;
+    if (!da && db) return 1;
+    if (da && db) return da - db;
+    return 0;
+  });
   if (filtered.length === 0) {
     body.innerHTML = `<div class="empty-zone">${activeFilter !== 'all' ? 'Brak dla wybranego filtru' : 'Przeciągnij tutaj'}</div>`;
   } else {
@@ -1194,6 +1776,7 @@ function makeItem(item, num) {
           <label class="toggle-pawel ${item.pawel?'active':''}" id="eip-${item.id}" onclick="toggleEditPawel('${item.id}')">
             <input type="checkbox" ${item.pawel?'checked':''}> [P] Paweł
           </label>
+          <button class="btn-mic" id="emic-${item.id}" onclick="event.stopPropagation();toggleEditMic('${item.id}')" title="Dyktuj">🎤</button>
           <button class="btn-save-edit"   onclick="event.stopPropagation();saveEdit('${item.id}')">✓ Zapisz</button>
           <button class="btn-cancel-edit" onclick="event.stopPropagation();closeEdit()">✕ Anuluj</button>
         </div>
@@ -1212,29 +1795,33 @@ function makeItem(item, num) {
   const noteOpen = openNotes.has(item.id);
   const hasNote  = !!(item.note && item.note.trim());
 
-  const catLabels = { prywatne:'Prywatne', firmowe:'Firmowe', dop:'DOP', projekty:'Projekty' };
+  const catLabels = { prywatne:'Prywatne', dp:'DOP', vns:'VNS', telegram:'Telegram', szpilki:'Szpilki', vibecoding:'Vibe' };
   el.className = 'item'
     + (item.checked    ? ' is-done'       : '')
     + (item.inProgress ? ' is-inprogress' : '')
-    + (item.priority   ? ' is-priority'   : '');
+    + (item.priority   ? ' is-priority'   : '')
+    + (selectedIds.has(item.id) ? ' selected' : '');
   el.draggable = true;
 
   const cbCls = item.checked ? 'checked' : (item.inProgress ? 'inprogress' : '');
   el.innerHTML = `
+    <div class="sel-cb" onclick="event.stopPropagation();toggleSelect('${item.id}')" title="Zaznacz"></div>
     <span class="num">${num}.</span>
     <span class="drag-handle">⋮⋮</span>
     <button class="btn-priority ${item.priority?'active':''}"
             onclick="event.stopPropagation();togglePriority('${item.id}')"
             title="${item.priority?'Usuń priorytet':'Ustaw priorytet'}">★</button>
-    <div class="cb ${cbCls}" data-cbid="${item.id}" title="Kliknij: ☐→W trakcie→✓"></div>
+    <div class="cb ${cbCls}" data-cbid="${item.id}" title="Kliknij: ☐→✓"></div>
     <div class="item-text" ondblclick="event.stopPropagation();openEdit('${item.id}')">
-      ${highlightDates(item.text)}
-      ${item.pawel ? '<span class="badge-p">[P]</span>' : ''}
-      ${item.cat   ? `<span class="badge-cat cat-${item.cat}">${catLabels[item.cat]||item.cat}</span>` : ''}
+      ${escHtml(item.text)}${(() => { const ds = getItemDateStr(item); if (!ds) return ''; const dt = parseDate(ds); const diffDays = dt ? Math.round((dt - TODAY)/86400000) : null; let cls = 'date-tag'; if (dt && dt < TODAY) cls += ' overdue'; else if (dt && diffDays === 0) cls += ' today'; else if (dt && diffDays <= 2) cls += ' today'; else if (dt && diffDays <= 7) cls += ' soon'; else if (dt) cls += ' future'; const label = diffDays===0?' dziś':diffDays===1?' jutro':diffDays>0?` za ${diffDays}d`:diffDays!==null?` ${Math.abs(diffDays)}d temu`:''; return ` <span class="${cls}" style="cursor:pointer" onclick="event.stopPropagation();showDateMenu('${item.id}',event)" title="Zmień datę">📅 ${ds}${label}</span>`; })()}
+      ${(item.cat || activeProject !== 'general') ? `<span class="badge-cat cat-${item.cat||activeProject}" onclick="event.stopPropagation();showMoveMenu('${item.id}',event)" title="Zmień projekt">${catLabels[item.cat||activeProject]||item.cat||activeProject}</span>` : ''}
     </div>
+    <button class="btn-progress-item ${item.inProgress?'is-active':''}" onclick="event.stopPropagation();toggleInProgress('${item.id}')" title="${item.inProgress?'Usuń W trakcie':'Oznacz jako W trakcie'}">⏳</button>
     <button class="btn-note-item ${hasNote?'has-note':''}" onclick="event.stopPropagation();toggleNote('${item.id}')" title="${noteOpen?'Schowaj notatkę':'Pokaż notatkę'}">📝</button>
+    <button class="btn-date-item"   onclick="event.stopPropagation();showDateMenu('${item.id}',event)" title="Dodaj datę">📅</button>
     <button class="btn-edit-item"   onclick="event.stopPropagation();openEdit('${item.id}')"   title="Edytuj">✏</button>
     <button class="btn-delete-item" onclick="event.stopPropagation();deleteItem('${item.id}')" title="Usuń">✕</button>
+    <button class="btn-more-item"   onclick="event.stopPropagation();showItemSheet('${item.id}')" title="Więcej">⋯</button>
   `;
 
   // Note area row
@@ -1265,6 +1852,25 @@ function makeItem(item, num) {
   el.querySelector('.cb').addEventListener('click', e => {
     e.stopPropagation();
     toggleCheck(item.id);
+  });
+
+  el.querySelector('.item-text').addEventListener('click', e => {
+    e.stopPropagation();
+    if (_pinnedItemEl && _pinnedItemEl !== el) {
+      _pinnedItemEl.classList.remove('item-pinned');
+    }
+    const pinned = el.classList.toggle('item-pinned');
+    _pinnedItemEl = pinned ? el : null;
+    if (pinned) {
+      const unpinOnClickOutside = ev => {
+        if (!el.contains(ev.target)) {
+          el.classList.remove('item-pinned');
+          if (_pinnedItemEl === el) _pinnedItemEl = null;
+          document.removeEventListener('click', unpinOnClickOutside);
+        }
+      };
+      setTimeout(() => document.addEventListener('click', unpinOnClickOutside), 0);
+    }
   });
 
   el.addEventListener('dragstart', e => {
@@ -1321,12 +1927,116 @@ function toggleNote(id) {
 // ════════════════════════════════════════
 //  EDIT ACTIONS
 // ════════════════════════════════════════
+let _moveMenuEl = null;
+let _moveMenuId = null;
+let _pinnedItemEl = null;
+let _dateMenuEl = null;
+
+function closeDateMenu() { if (_dateMenuEl) { _dateMenuEl.remove(); _dateMenuEl = null; } }
+
+function fmtDate(d) {
+  return (d.getDate()).toString().padStart(2,'0') + '.' + (d.getMonth()+1).toString().padStart(2,'0');
+}
+function showDateMenu(id, event) {
+  closeDateMenu(); closeMoveMenu();
+  const today = new Date();
+  const tomorrow = new Date(today); tomorrow.setDate(today.getDate()+1);
+  const lastUsed = localStorage.getItem('lastItemDate');
+
+  const menu = document.createElement('div');
+  menu.className = 'date-menu';
+
+  const opts = [
+    { label: '📅 Dziś — ' + fmtDate(today), val: fmtDate(today) },
+    { label: '➡ Jutro — ' + fmtDate(tomorrow), val: fmtDate(tomorrow) },
+  ];
+  if (lastUsed && lastUsed !== fmtDate(today) && lastUsed !== fmtDate(tomorrow)) {
+    opts.push({ label: '🕐 Ostatnia — ' + lastUsed, val: lastUsed });
+  }
+  opts.push({ label: '🗑 Usuń datę', val: null });
+
+  opts.forEach(({ label, val }) => {
+    const btn = document.createElement('button');
+    btn.textContent = label;
+    btn.onclick = e => { e.stopPropagation(); applyItemDate(id, val); closeDateMenu(); };
+    menu.appendChild(btn);
+  });
+
+  // custom date input
+  const inp = document.createElement('input');
+  inp.type = 'date';
+  inp.addEventListener('click', e => e.stopPropagation());
+  inp.addEventListener('change', e => {
+    const d = new Date(e.target.value);
+    if (!isNaN(d)) applyItemDate(id, fmtDate(d));
+    closeDateMenu();
+  });
+  menu.appendChild(inp);
+
+  menu.addEventListener('click', e => e.stopPropagation());
+  const rect = event.target.getBoundingClientRect();
+  menu.style.top  = (rect.bottom + 4) + 'px';
+  menu.style.left = Math.min(rect.left, window.innerWidth - 175) + 'px';
+  document.body.appendChild(menu);
+  _dateMenuEl = menu;
+  setTimeout(() => document.addEventListener('click', closeDateMenu, { once: true }), 0);
+}
+
+function applyItemDate(id, dateStr) {
+  const item = items.find(i => i.id === id);
+  if (!item) return;
+  pushHistory();
+  // zapisz/usuń datę w note (prefix 📅), NIE w tekście
+  const noteWithoutDate = (item.note || '').replace(/📅\s*\d{1,2}\.\d{2}(?:\.\d{2,4})?\s*/g, '').trim();
+  item.note = dateStr ? ('📅' + dateStr + (noteWithoutDate ? '\n' + noteWithoutDate : '')) : noteWithoutDate;
+  if (dateStr) localStorage.setItem('lastItemDate', dateStr);
+  render(); autoSave();
+}
+function closeMoveMenu() {
+  if (_moveMenuEl) { _moveMenuEl.remove(); _moveMenuEl = null; _moveMenuId = null; }
+}
+function showMoveMenu(id, event) {
+  if (_moveMenuId === id) { closeMoveMenu(); return; }
+  closeMoveMenu();
+  const targets = Object.entries(PROJECTS)
+    .filter(([k]) => k !== 'general' && k !== activeProject)
+    .map(([k, v]) => ({ key: k, label: v.label }));
+  const menu = document.createElement('div');
+  menu.className = 'move-menu';
+  targets.forEach(({ key, label }) => {
+    const btn = document.createElement('button');
+    btn.textContent = '→ ' + label;
+    btn.onclick = (e) => { e.stopPropagation(); moveTask(id, key); closeMoveMenu(); };
+    menu.appendChild(btn);
+  });
+  const rect = event.target.getBoundingClientRect();
+  menu.style.top  = (rect.bottom + 4) + 'px';
+  menu.style.left = Math.min(rect.left, window.innerWidth - 150) + 'px';
+  document.body.appendChild(menu);
+  _moveMenuEl = menu;
+  _moveMenuId = id;
+  setTimeout(() => document.addEventListener('click', closeMoveMenu, { once: true }), 0);
+}
+async function moveTask(id, targetProject) {
+  const item = items.find(i => i.id === id);
+  if (!item) return;
+  try {
+    await sb.from('tasks').update({ project: targetProject }).eq('id', id);
+  } catch(e) { console.warn('moveTask sb error', e); }
+  items = items.filter(i => i.id !== id);
+  render();
+  saveAll();
+  const label = PROJECTS[targetProject]?.label || targetProject;
+  showToast('Przeniesiono do ' + label);
+}
+
 function deleteItem(id) {
   const item = items.find(i => i.id === id);
   pushHistory();
   openNotes.delete(id);
   items = items.filter(i => i.id !== id);
   render(); autoSave();
+  sbDelete(id);
   if (item) logAction('✕', `Usunięto: ${item.text.slice(0,55)}`);
   showToast('✕ Usunięto — Ctrl+Z cofa', true);
 }
@@ -1378,6 +2088,15 @@ function togglePriority(id) {
   const item = items.find(i => i.id === id);
   if (!item) return;
   item.priority = !item.priority;
+  render(); autoSave();
+}
+
+function toggleInProgress(id) {
+  pushHistory();
+  const item = items.find(i => i.id === id);
+  if (!item || item.checked) return;
+  item.inProgress = !item.inProgress;
+  logAction('⏳', `${item.inProgress ? 'W trakcie' : 'Wróć'}: ${item.text.slice(0,55)}`);
   render(); autoSave();
 }
 
@@ -1461,8 +2180,8 @@ function toggleCheck(id) {
       delete item._prevSec; delete item._prevQuad; delete item.completedAt;
     }
     logAction('↺', `Przywrócono: ${item.text.slice(0,55)}`);
-  } else if (item.inProgress) {
-    // w trakcie → done
+  } else {
+    // todo/w-trakcie → done
     item.inProgress  = false;
     item.checked     = true;
     item._prevSec    = item.sec;
@@ -1472,10 +2191,6 @@ function toggleCheck(id) {
     item.quad = null;
     sections.find(s => s.id === 'done').collapsed = false;
     logAction('✓', `Zrobione: ${item.text.slice(0,55)}`);
-  } else {
-    // todo → w trakcie
-    item.inProgress = true;
-    logAction('…', `W trakcie: ${item.text.slice(0,55)}`);
   }
   render(); autoSave();
 }
@@ -1548,16 +2263,16 @@ function updateStats() {
   const q1c  = items.filter(i => i.sec==='todo' && i.quad==='q1' && !i.checked).length;
   const q2c  = items.filter(i => i.sec==='todo' && i.quad==='q2' && !i.checked).length;
   const done = items.filter(i => i.checked).length;
-  const pawel= items.filter(i => i.sec==='pawel' && !i.checked).length;
+  const inprog = items.filter(i => i.inProgress && !i.checked).length;
   const total = items.length;
   const pct  = Math.round(done / total * 100);
 
-  document.getElementById('s-q1').textContent    = q1c;
-  document.getElementById('s-q2').textContent    = q2c;
-  document.getElementById('s-done').textContent  = done;
-  document.getElementById('s-pawel').textContent = pawel;
-  document.getElementById('pct').textContent     = pct + '%';
-  document.getElementById('bar').style.width     = pct + '%';
+  document.getElementById('s-q1').textContent         = q1c;
+  document.getElementById('s-q2').textContent         = q2c;
+  document.getElementById('s-done').textContent       = done;
+  document.getElementById('s-inprogress').textContent = inprog;
+  document.getElementById('pct').textContent          = pct + '%';
+  document.getElementById('bar').style.width          = pct + '%';
 }
 
 // ════════════════════════════════════════
@@ -1576,20 +2291,35 @@ function showToast(msg, isUndo) {
 //  SAVE / LOAD
 // ════════════════════════════════════════
 function saveState(silent = false) {
-  const state = {
-    _saved: new Date().toISOString(),
-    items,
-    sections: sections.map(s => ({ id: s.id, collapsed: s.collapsed })),
-    quadsCollapsed:    { ...QUADS_COLLAPSED },
-    doneSubsCollapsed: { ...DONE_SUBS_COLLAPSED },
-  };
-  localStorage.setItem(PROJECTS[activeProject].storageKey, JSON.stringify(state));
+  if (activeProject === 'projekty') return;
+  if (activeProject === 'general') {
+    saveAggregateItems();
+  } else {
+    const state = {
+      _saved: new Date().toISOString(),
+      items,
+      sections: sections.map(s => ({ id: s.id, collapsed: s.collapsed })),
+      quadsCollapsed:    { ...QUADS_COLLAPSED },
+      doneSubsCollapsed: { ...DONE_SUBS_COLLAPSED },
+    };
+    localStorage.setItem(PROJECTS[activeProject].storageKey, JSON.stringify(state));
+  }
   document.getElementById('last-saved').textContent = `Zapis: ${new Date().toLocaleString('pl-PL')}`;
   if (!silent) showToast('✓ Zapisano', false);
 }
 
 let saveTimer = null;
-function autoSave() { clearTimeout(saveTimer); saveTimer = setTimeout(() => saveState(true), 700); }
+function autoSave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    saveState(true);
+    if (activeProject === 'general') {
+      CAT_PROJECTS.forEach(catKey => sbSave(items.filter(i => i.cat === catKey), catKey));
+    } else if (activeProject !== 'projekty') {
+      sbSave(items, activeProject);
+    }
+  }, 700);
+}
 
 function loadState() {
   try {
@@ -1650,9 +2380,23 @@ function toggleAddForm() {
 }
 
 function onSecChange() {
-  const sec  = document.getElementById('new-sec').value;
-  const quad = document.getElementById('new-quad');
+  const secEl = document.getElementById('new-sec');
+  const sec   = secEl.value;
+  const quad  = document.getElementById('new-quad');
   quad.style.display = sec === 'todo' ? '' : 'none';
+
+  // hide ai/pawel options for projects that don't have those sections
+  const hasAiPawel = activeProject === 'vibecoding';
+  const optAi    = secEl.querySelector('option[value="ai"]');
+  const optPawel = secEl.querySelector('option[value="pawel"]');
+  if (optAi)    optAi.style.display    = hasAiPawel ? '' : 'none';
+  if (optPawel) optPawel.style.display = hasAiPawel ? '' : 'none';
+
+  // if current value is ai/pawel but project doesn't support it — reset to todo
+  if (!hasAiPawel && (sec === 'ai' || sec === 'pawel')) {
+    secEl.value = 'todo';
+    quad.style.display = '';
+  }
 }
 
 function togglePawelFlag() {
@@ -1673,11 +2417,12 @@ function submitNewItem() {
   const pawel = document.getElementById('new-pawel').checked;
   const cat   = document.getElementById('new-cat').value || null;
 
-  const text = date ? `${rawText} — ${date}` : rawText;
+  const text = rawText;
+  const note = date ? `📅${date}` : '';
   const id   = 'u' + Date.now();
 
   pushHistory();
-  items.push({ id, sec, quad, checked: false, inProgress: false, priority: false, pawel, cat, note: '', text });
+  items.push({ id, sec, quad, checked: false, inProgress: false, priority: false, pawel, cat, note, text });
 
   const targetSec = sections.find(s => s.id === sec);
   if (targetSec) targetSec.collapsed = false;
@@ -1752,6 +2497,57 @@ function toggleMic() {
   recognition.start();
 }
 
+let editMicActive = false;
+let editMicRecognition = null;
+
+function toggleEditMic(id) {
+  if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+    showToast('⚠ Przeglądarka nie obsługuje dyktowania', false);
+    return;
+  }
+  if (editMicActive) {
+    editMicRecognition && editMicRecognition.stop();
+    return;
+  }
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  editMicRecognition = new SR();
+  editMicRecognition.lang          = 'pl-PL';
+  editMicRecognition.interimResults = true;
+  editMicRecognition.continuous    = false;
+
+  const input = document.getElementById('eit-' + id);
+  const btn   = document.getElementById('emic-' + id);
+  const base  = input ? input.value : '';
+
+  editMicRecognition.onstart = () => {
+    editMicActive = true;
+    if (btn) { btn.classList.add('recording'); btn.textContent = '⏹'; }
+  };
+
+  editMicRecognition.onresult = e => {
+    let interim = '', final = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      if (e.results[i].isFinal) final   += e.results[i][0].transcript;
+      else                      interim += e.results[i][0].transcript;
+    }
+    if (input) input.value = (base + (final || interim)).trim();
+  };
+
+  editMicRecognition.onend = () => {
+    editMicActive = false;
+    if (btn) { btn.classList.remove('recording'); btn.textContent = '🎤'; }
+    if (input) input.focus();
+  };
+
+  editMicRecognition.onerror = e => {
+    editMicActive = false;
+    if (btn) { btn.classList.remove('recording'); btn.textContent = '🎤'; }
+    if (e.error !== 'no-speech') showToast('⚠ Błąd mikrofonu: ' + e.error, false);
+  };
+
+  editMicRecognition.start();
+}
+
 // ════════════════════════════════════════
 //  ACTION LOG
 // ════════════════════════════════════════
@@ -1812,12 +2608,10 @@ function getVoiceItems() {
     if (sec.id === 'todo') {
       QUADS.forEach(q => {
         items.filter(i => i.sec === 'todo' && i.quad === q.id && !i.checked)
-          .sort((a,b) => (b.priority?1:0)-(a.priority?1:0))
           .forEach(i => result.push(i));
       });
     } else {
       items.filter(i => i.sec === sec.id && !i.checked)
-        .sort((a,b) => (b.priority?1:0)-(a.priority?1:0))
         .forEach(i => result.push(i));
     }
   });
@@ -1952,44 +2746,344 @@ function toggleGlobalMic() {
 // ════════════════════════════════════════
 //  PROJECT SWITCHER
 // ════════════════════════════════════════
+let projectsSubView = null; // null = karta projektu; 'szpilki' etc = otwarty projekt
+
 function switchProject(pid) {
-  if (pid === activeProject) return;
+  if (pid === activeProject && pid !== 'projekty') return;
   saveState(true);
   activeProject = pid;
-  const proj = PROJECTS[pid];
-  // reset to defaults for new project
-  items    = JSON.parse(JSON.stringify(proj.defaultItems));
-  sections = JSON.parse(JSON.stringify(SECTIONS_DEF));
+  projectsSubView = null;
+
+  const allowedSecs1 = SECTIONS_BY_PROJECT[pid] || ['todo','ai','pawel','done'];
+  sections = SECTIONS_DEF.filter(s => allowedSecs1.includes(s.id)).map(s => JSON.parse(JSON.stringify(s)));
   Object.assign(QUADS_COLLAPSED,     { q1:false, q2:false, q3:true, q4:true });
   Object.assign(DONE_SUBS_COLLAPSED, { 'ds-todo':false, 'ds-ai':false, 'ds-pawel':false });
   activeFilter = 'all';
   editingId    = null;
   weekViewOpen = false;
-  // close add form if open
+
   const form = document.getElementById('add-form');
   const btn  = document.getElementById('btn-open-add');
   if (form)  form.classList.remove('open');
   if (btn)   btn.innerHTML = '+ Nowe zadanie <kbd style="font-size:9px;opacity:.5">N</kbd>';
-  // load saved state for new project (if any)
-  loadState();
+
+  // hide/show add button + filter bar in projects view
+  const filterBar = document.querySelector('.filter-bar');
+  const actionsBar = document.querySelector('.actions');
+  const hideUI = pid === 'projekty';
+  if (filterBar)  filterBar.style.display  = hideUI ? 'none' : '';
+  if (actionsBar) actionsBar.style.display = hideUI ? 'none' : '';
+
+  if (pid === 'general') {
+    items = loadAggregateItems();
+  } else if (pid === 'projekty') {
+    items = [];
+  } else {
+    loadState();
+  }
+
   render();
-  // update tab highlight
+
   document.querySelectorAll('.proj-tab').forEach(t => t.classList.remove('active'));
-  document.getElementById('pt-' + pid).classList.add('active');
-  // update page title
-  const titles = {
-    general:  'Wszystkie',
-    prywatne: 'Prywatne',
-    dp:       'DP',
-    wideo:    'Wideo na Socjale',
-    szpilki:  'Zdunek — Szpilki',
-  };
-  document.getElementById('proj-title').textContent = titles[pid] || proj.label;
+  const tabEl = document.getElementById('pt-' + pid);
+  if (tabEl) tabEl.classList.add('active');
+
+  const titles = { general:'Wszystkie', prywatne:'Prywatne', dp:'DOP', vns:'VNS', projekty:'Projekty', szpilki:'Zdunek — Szpilki', vibecoding:'Vibe Coding' };
+  document.getElementById('proj-title').textContent = titles[pid] || (PROJECTS[pid] && PROJECTS[pid].label) || pid;
 }
 
-loadState();
+function openSubProject(key) {
+  projectsSubView = key;
+  saveState(true);
+  activeProject = key;
+  const allowedSecs2 = SECTIONS_BY_PROJECT[key] || ['todo','ai','pawel','done'];
+  sections = SECTIONS_DEF.filter(s => allowedSecs2.includes(s.id)).map(s => JSON.parse(JSON.stringify(s)));
+  Object.assign(QUADS_COLLAPSED,     { q1:false, q2:false, q3:true, q4:true });
+  Object.assign(DONE_SUBS_COLLAPSED, { 'ds-todo':false, 'ds-ai':false, 'ds-pawel':false });
+  activeFilter = 'all'; editingId = null; weekViewOpen = false;
+  const filterBar  = document.querySelector('.filter-bar');
+  const actionsBar = document.querySelector('.actions');
+  if (filterBar)  filterBar.style.display  = '';
+  if (actionsBar) actionsBar.style.display = '';
+  loadState();
+  render();
+  document.getElementById('proj-title').textContent = SUB_PROJECTS[key] ? SUB_PROJECTS[key].label : key;
+}
+
+// ════════════════════════════════════════
+//  CALENDAR
+// ════════════════════════════════════════
+let calYear = TODAY.getFullYear(), calMonth = TODAY.getMonth();
+
+function toggleCalendar() {
+  const ov = document.getElementById('cal-overlay');
+  ov.style.display = ov.style.display === 'none' ? 'flex' : 'none';
+  if (ov.style.display === 'flex') renderCal();
+}
+
+function calPrev() { calMonth--; if (calMonth < 0) { calMonth = 11; calYear--; } renderCal(); }
+function calNext() { calMonth++; if (calMonth > 11) { calMonth = 0; calYear++; } renderCal(); }
+
+function renderCal() {
+  const MONTHS = ['Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec','Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień'];
+  document.getElementById('cal-title').textContent = `${MONTHS[calMonth]} ${calYear}`;
+
+  const wrap = document.getElementById('cal-grid-wrap');
+  const grid = document.getElementById('cal-grid');
+
+  // build days header
+  const DAY_LABELS = ['Pon','Wt','Śr','Czw','Pt','Sob','Niedz'];
+  const existing = wrap.querySelector('.cal-days-hd');
+  if (existing) existing.remove();
+  const hd = document.createElement('div');
+  hd.className = 'cal-days-hd';
+  hd.innerHTML = DAY_LABELS.map(d => `<div class="cal-day-lbl">${d}</div>`).join('');
+  wrap.insertBefore(hd, grid);
+
+  const firstDay = new Date(calYear, calMonth, 1);
+  const lastDay  = new Date(calYear, calMonth + 1, 0);
+  let startDow = firstDay.getDay();
+  startDow = startDow === 0 ? 6 : startDow - 1; // Mon=0
+
+  // collect tasks with dates
+  const tasksByDate = {};
+  items.forEach(item => {
+    const dt = getItemDate(item);
+    if (!dt) return;
+    const key = dt.toISOString().slice(0, 10);
+    if (!tasksByDate[key]) tasksByDate[key] = [];
+    tasksByDate[key].push(item);
+  });
+
+  grid.innerHTML = '';
+  for (let i = 0; i < startDow; i++) {
+    const blank = document.createElement('div');
+    blank.className = 'cal-cell other-month';
+    grid.appendChild(blank);
+  }
+  for (let d = 1; d <= lastDay.getDate(); d++) {
+    const cell = document.createElement('div');
+    const dt   = new Date(calYear, calMonth, d);
+    const key  = dt.toISOString().slice(0, 10);
+    const isToday = dt.toDateString() === TODAY.toDateString();
+    cell.className = 'cal-cell' + (isToday ? ' today' : '');
+    const tasks = tasksByDate[key] || [];
+    cell.innerHTML = `<div class="cal-cell-num">${d}</div>` +
+      tasks.slice(0, 3).map(t =>
+        `<div class="cal-task${t.checked ? ' done' : t.inProgress ? ' inprogress' : ''}" title="${escHtml(t.text)}">${escHtml(t.text.slice(0, 20))}</div>`
+      ).join('') +
+      (tasks.length > 3 ? `<div style="font-size:9px;color:var(--muted)">+${tasks.length - 3} więcej</div>` : '');
+    grid.appendChild(cell);
+  }
+}
+
+// ════════════════════════════════════════
+//  BULK SELECT
+// ════════════════════════════════════════
+const selectedIds = new Set();
+
+function toggleSelect(id) {
+  if (selectedIds.has(id)) selectedIds.delete(id);
+  else selectedIds.add(id);
+  updateBulkToolbar();
+  render();
+}
+
+function updateBulkToolbar() {
+  const tb  = document.getElementById('bulk-toolbar');
+  const cnt = document.getElementById('bulk-count');
+  if (!tb) return;
+  tb.style.display = selectedIds.size > 0 ? 'flex' : 'none';
+  if (cnt) cnt.textContent = `${selectedIds.size} zaznaczonych`;
+}
+
+function clearSelection() {
+  selectedIds.clear();
+  updateBulkToolbar();
+  render();
+}
+
+function applyBulkDate() {
+  const dateEl  = document.getElementById('bulk-date');
+  const dateStr = pickerToDisplay(dateEl.value);
+  if (!dateStr) { showToast('⚠ Wybierz datę', false); return; }
+  const count = selectedIds.size;
+  pushHistory();
+  selectedIds.forEach(id => {
+    const item = items.find(i => i.id === id);
+    if (!item) return;
+    item.text = item.text.replace(/\s*[—–]\s*\d{1,2}\.\d{2}(\.\d{2,4})?$/, '').trim() + ' — ' + dateStr;
+  });
+  clearSelection();
+  render(); autoSave();
+  showToast(`📅 Data dodana do ${count} zadań`, false);
+}
+
+function applyBulkStatus(status) {
+  pushHistory();
+  selectedIds.forEach(id => {
+    const item = items.find(i => i.id === id);
+    if (!item || item.checked) return;
+    if (status === 'inprogress') item.inProgress = true;
+  });
+  clearSelection();
+  render(); autoSave();
+}
+
+// Initial load — localStorage (fast), then Supabase sync in background
+if (activeProject === 'general') {
+  items = loadAggregateItems();
+} else {
+  loadState();
+}
 render();
 onSecChange();
+setTimeout(syncFromSupabase, 200);
+
+// ── PWA Service Worker ──
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').catch(() => {});
+}
+
+// ── Bottom Sheet (mobile) ──
+function showItemSheet(id) {
+  const item = items.find(i => i.id === id);
+  if (!item) return;
+
+  const overlay = document.createElement('div');
+  overlay.className = 'sheet-overlay';
+  overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
+
+  const sheet = document.createElement('div');
+  sheet.className = 'sheet';
+  sheet.innerHTML = `
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">${escHtml(item.text.slice(0,45))}${item.text.length>45?'…':''}</div>
+    <div class="sheet-actions"></div>
+  `;
+
+  const acts = sheet.querySelector('.sheet-actions');
+
+  const mkBtn = (icon, label, cls, fn) => {
+    const b = document.createElement('button');
+    b.className = 'sheet-btn' + (cls ? ' ' + cls : '');
+    b.innerHTML = `<span class="sh-icon">${icon}</span>${label}`;
+    b.onclick = () => { overlay.remove(); fn(); };
+    acts.appendChild(b);
+  };
+
+  mkBtn(item.checked ? '↩' : '✓',
+        item.checked ? 'Cofnij ukończenie' : 'Oznacz jako zrobione',
+        item.checked ? '' : '', () => toggleCheck(id));
+
+  mkBtn(item.priority ? '☆' : '★',
+        item.priority ? 'Usuń priorytet' : 'Ustaw priorytet',
+        item.priority ? '' : 'sh-active', () => togglePriority(id));
+
+  mkBtn(item.inProgress ? '⏸' : '⏳',
+        item.inProgress ? 'Usuń „W trakcie"' : 'Oznacz jako W trakcie',
+        '', () => toggleInProgress(id));
+
+  mkBtn('📅', 'Ustaw datę', '', () => {
+    // fake event dla pozycjonowania menu
+    const fakeEv = { target: document.body, stopPropagation: () => {} };
+    showDateMenu(id, fakeEv);
+  });
+
+  mkBtn('📝', (item.note||'').replace(/📅[\d.]+\s*/,'').trim() ? 'Edytuj notatkę' : 'Dodaj notatkę',
+        '', () => { openNote(id); });
+
+  mkBtn('✏', 'Edytuj zadanie', '', () => openEdit(id));
+  mkBtn('✕', 'Usuń', 'sh-danger', () => deleteItem(id));
+
+  overlay.appendChild(sheet);
+  document.body.appendChild(overlay);
+}
+
+function openNote(id) {
+  if (!openNotes.has(id)) openNotes.add(id);
+  render();
+  setTimeout(() => {
+    const ta = document.querySelector(`[data-noteid="${id}"]`);
+    if (ta) { ta.focus(); ta.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+  }, 100);
+}
+
+// ── Mobile Bottom Nav ──
+function initMobileNav() {
+  const nav = document.createElement('nav');
+  nav.className = 'mobile-nav';
+  nav.id = 'mobile-nav';
+
+  const tabs = [
+    { key: 'general',   icon: '📋', label: 'Wszystkie' },
+    { key: 'prywatne',  icon: '🔴', label: 'Prywatne'  },
+    { key: 'dp',        icon: '🎬', label: 'DOP'        },
+    { key: 'vns',       icon: '📱', label: 'VNS'        },
+    { key: 'projekty',  icon: '📂', label: 'Projekty'   },
+  ];
+
+  tabs.forEach(t => {
+    const b = document.createElement('button');
+    b.className = 'mnav-btn' + (activeProject === t.key ? ' active' : '');
+    b.id = 'mnav-' + t.key;
+    b.innerHTML = `<span class="mn-icon">${t.icon}</span>${t.label}`;
+    b.onclick = () => {
+      document.querySelectorAll('.mnav-btn').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      switchProject(t.key);
+    };
+    nav.appendChild(b);
+  });
+
+  // "Więcej" button → bottom sheet z pozostałymi zakładkami
+  const more = document.createElement('button');
+  more.className = 'mnav-btn';
+  more.innerHTML = `<span class="mn-icon">⋯</span>Więcej`;
+  more.onclick = () => showMoreNav();
+  nav.appendChild(more);
+
+  document.body.appendChild(nav);
+}
+
+function showMoreNav() {
+  const overlay = document.createElement('div');
+  overlay.className = 'sheet-overlay';
+  overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
+
+  const sheet = document.createElement('div');
+  sheet.className = 'sheet';
+  sheet.innerHTML = `<div class="sheet-handle"></div><div class="sheet-title">Więcej widoków</div><div class="sheet-actions"></div>`;
+  const acts = sheet.querySelector('.sheet-actions');
+
+  [
+    { key: 'vibecoding', icon: '💻', label: 'Vibe Coding' },
+    { key: 'telegram',   icon: '📲', label: 'Telegram'    },
+    { key: 'spotkania',  icon: '🤝', label: 'Spotkania'   },
+  ].forEach(({ key, icon, label }) => {
+    const b = document.createElement('button');
+    b.className = 'sheet-btn';
+    b.innerHTML = `<span class="sh-icon">${icon}</span>${label}`;
+    b.onclick = () => { overlay.remove(); switchProject(key); };
+    acts.appendChild(b);
+  });
+
+  // Eksport / Import
+  const expBtn = document.createElement('button');
+  expBtn.className = 'sheet-btn';
+  expBtn.innerHTML = `<span class="sh-icon">⬇</span>Eksportuj JSON`;
+  expBtn.onclick = () => { overlay.remove(); exportJSON(); };
+  acts.appendChild(expBtn);
+
+  overlay.appendChild(sheet);
+  document.body.appendChild(overlay);
+}
+
+if (window.innerWidth <= 640) initMobileNav();
+window.addEventListener('resize', () => {
+  const nav = document.getElementById('mobile-nav');
+  if (window.innerWidth <= 640 && !nav) initMobileNav();
+});
 </script>
 </body>
 </html>
