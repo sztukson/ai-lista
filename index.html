@@ -2625,6 +2625,132 @@ function norm(s) {
   return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim();
 }
 
+// ── Polish spoken-date normalizer ──
+const _PL_ORDINALS = [
+  ['trzydziestego pierwszego',31],['trzydziesty pierwszy',31],
+  ['trzydziestego',30],['trzydziesty',30],
+  ['dwudziestego dziewiatego',29],['dwudziesty dziewiety',29],
+  ['dwudziestego osmego',28],['dwudziesty osmy',28],
+  ['dwudziestego siodmego',27],['dwudziesty siodmy',27],
+  ['dwudziestego szostego',26],['dwudziesty szosty',26],
+  ['dwudziestego piatego',25],['dwudziesty piaty',25],
+  ['dwudziestego czwartego',24],['dwudziesty czwarty',24],
+  ['dwudziestego trzeciego',23],['dwudziesty trzeci',23],
+  ['dwudziestego drugiego',22],['dwudziesty drugi',22],
+  ['dwudziestego pierwszego',21],['dwudziesty pierwszy',21],
+  ['dwudziestego',20],['dwudziesty',20],
+  ['dziewietnaastego',19],['dziewietnasty',19],['dziewietnastego',19],
+  ['osiemnastego',18],['osiemnasty',18],
+  ['siedemnastego',17],['siedemnasty',17],
+  ['szesnastego',16],['szesnasty',16],
+  ['pietnaastego',15],['piętnastego',15],['pietnastego',15],['piętnasty',15],
+  ['czternastego',14],['czternasty',14],
+  ['trzynastego',13],['trzynasty',13],
+  ['dwunastego',12],['dwunasty',12],
+  ['jedenastego',11],['jedenasty',11],
+  ['dziesiatego',10],['dziesiaty',10],
+  ['dziewiatego',9],['dziewiaty',9],
+  ['osmego',8],['osmy',8],
+  ['siodmego',7],['siodmy',7],
+  ['szostego',6],['szosty',6],
+  ['piatego',5],['piaty',5],
+  ['czwartego',4],['czwarty',4],
+  ['trzeciego',3],['trzeci',3],
+  ['drugiego',2],['drugi',2],
+  ['pierwszego',1],['pierwszy',1],
+];
+const _PL_MONTH_NAMES = {
+  'stycznia':'01','styczen':'01','stycznia':'01',
+  'lutego':'02','luty':'02',
+  'marca':'03','marzec':'03',
+  'kwietnia':'04','kwiecien':'04',
+  'maja':'05','maj':'05',
+  'czerwca':'06','czerwiec':'06',
+  'lipca':'07','lipiec':'07',
+  'sierpnia':'08','sierpien':'08',
+  'wrzesnia':'09','wrzesien':'09',
+  'pazdziernika':'10','pazdziernik':'10',
+  'listopada':'11','listopad':'11',
+  'grudnia':'12','grudzien':'12',
+};
+// build normalized lookup
+const _ordMap = {};
+_PL_ORDINALS.forEach(([w,n]) => { _ordMap[norm(w)] = n; });
+const _allOrdNorm = Object.keys(_ordMap).sort((a,b) => b.length - a.length);
+const _monNorm = {};
+Object.entries(_PL_MONTH_NAMES).forEach(([k,v]) => { _monNorm[norm(k)] = v; });
+const _allMonNorm = Object.keys(_monNorm).sort((a,b) => b.length - a.length);
+
+function _reEsc(s) { return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
+function _pad2(n) { return String(n).padStart(2,'0'); }
+
+function normalizeSpeechDates(text) {
+  // 1. Decimal comma date: "10,06" → "10.06"
+  text = text.replace(/\b(\d{1,2})[,]\s*0*(\d{1,2})\b/g, (_, d, m) => {
+    if (+m >= 1 && +m <= 12 && +d >= 1 && +d <= 31) return `${d}.${_pad2(+m)}`;
+    return _;
+  });
+
+  const t = norm(text);
+  let result = text;
+
+  // Helper: replace in original text preserving case position
+  function replaceNorm(origText, normPattern, replacement) {
+    const lower = norm(origText);
+    let idx = lower.indexOf(normPattern);
+    while (idx !== -1) {
+      // approximate position in original (NFD may differ in length)
+      result = origText.slice(0, idx) + replacement + origText.slice(idx + normPattern.length);
+      origText = result;
+      const newLower = norm(origText);
+      idx = newLower.indexOf(normPattern);
+    }
+    return origText;
+  }
+
+  // 2. Digit + month name: "10 czerwca" → "10.06"
+  const digitMonRx = new RegExp(
+    '\\b(\\d{1,2})\\s+(' + _allMonNorm.map(_reEsc).join('|') + ')\\b', 'gi'
+  );
+  result = result.replace(digitMonRx, (_, d, m) => {
+    const mm = _monNorm[norm(m)];
+    return mm ? `${d}.${mm}` : _;
+  });
+
+  // 3. Ordinal + month name: "dziesiątego czerwca" → "10.06"
+  const ordMonRx = new RegExp(
+    '\\b(' + _allOrdNorm.map(_reEsc).join('|') + ')\\s+(' + _allMonNorm.map(_reEsc).join('|') + ')\\b', 'gi'
+  );
+  result = result.replace(ordMonRx, (_, d, m) => {
+    const dd = _ordMap[norm(d)];
+    const mm = _monNorm[norm(m)];
+    return (dd && mm) ? `${_pad2(dd)}.${mm}` : _;
+  });
+
+  // 4. Ordinal + ordinal: "dziesiątego szóstego" → "10.06"
+  const ordOrdRx = new RegExp(
+    '\\b(' + _allOrdNorm.map(_reEsc).join('|') + ')\\s+(' + _allOrdNorm.map(_reEsc).join('|') + ')\\b', 'gi'
+  );
+  result = result.replace(ordOrdRx, (_, d, m) => {
+    const dd = _ordMap[norm(d)];
+    const mm = _ordMap[norm(m)];
+    if (dd && mm && mm <= 12) return `${_pad2(dd)}.${_pad2(mm)}`;
+    return _;
+  });
+
+  // 5. Digit + ordinal month: "10 szóstego" → "10.06"
+  const digitOrdRx = new RegExp(
+    '\\b(\\d{1,2})\\s+(' + _allOrdNorm.map(_reEsc).join('|') + ')\\b', 'gi'
+  );
+  result = result.replace(digitOrdRx, (_, d, m) => {
+    const mm = _ordMap[norm(m)];
+    if (mm && mm <= 12) return `${d}.${_pad2(mm)}`;
+    return _;
+  });
+
+  return result;
+}
+
 function findItemByText(query) {
   const q = norm(query);
   return items.filter(i => !i.checked).find(i => norm(i.text).includes(q)) || null;
@@ -2647,6 +2773,7 @@ function getVoiceItems() {
 }
 
 function voiceCommand(text) {
+  text = normalizeSpeechDates(text);
   const t = norm(text);
 
   if (/^cofnij/.test(t))  { undo(); return; }
@@ -2679,6 +2806,7 @@ function voiceCommand(text) {
 
 function addVoiceItem(text) {
   if (!text) return;
+  text = normalizeSpeechDates(text);
   const id = 'vc' + Date.now();
   pushHistory();
   items.push({ id, sec:'todo', quad:'q2', checked:false, priority:false, pawel:false, note:'', text });
