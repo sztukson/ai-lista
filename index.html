@@ -1092,9 +1092,10 @@ async function confirmTGItem(id) {
   if (!item) return;
   pushHistory();
   item.checked = true; item.sec = 'done';
-  // zamień [TG✓ dd.mm] na [📲 TG] — zostaje w zrobionych jako ślad
   item.note = (item.note || '').replace(/\[TG✓[^\]]*\]/g, '[📲 TG]').trim();
-  render(); autoSave();
+  render();
+  await sb.from('tasks').update({ checked: true, sec: 'done', note: item.note, completed_at: new Date().toISOString() }).eq('id', id);
+  autoSave();
   showToast('✅ Zatwierdzone z TG', false);
 }
 async function rejectTGItem2(id) {
@@ -1102,7 +1103,9 @@ async function rejectTGItem2(id) {
   if (!item) return;
   pushHistory();
   item.note = (item.note || '').replace(/\s*\[TG✓[^\]]*\]/g, '').trim();
-  render(); autoSave();
+  render();
+  await sb.from('tasks').update({ note: item.note }).eq('id', id);
+  autoSave();
   showToast('↩️ Cofnięto TG-done', false);
 }
 async function confirmTGDone(id) {
