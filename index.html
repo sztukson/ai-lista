@@ -2681,6 +2681,7 @@ function makeItem(item, num, isChildView = false) {
 
   const catLabels = { prywatne:'Prywatne', dp:'DOP', vns:'VNS', telegram:'Telegram', szpilki:'Szpilki', vibecoding:'Vibe', fundacja:'Fundacja', cykliczne:'Cykliczne', spotkania:'Spotkania' };
   const isTGPending = !item.checked && typeof item.note === 'string' && item.note.includes('[TG✓');
+  const isTGDone    = item.checked  && typeof item.note === 'string' && item.note.includes('[📲 TG]');
   el.className = 'item'
     + (item.checked    ? ' is-done'       : '')
     + (item.inProgress ? ' is-inprogress' : '')
@@ -2714,6 +2715,7 @@ function makeItem(item, num, isChildView = false) {
     <button class="btn-edit-item"     onclick="event.stopPropagation();duplicateItem('${item.id}')" title="Duplikuj" style="opacity:.7">⧉</button>
     <button class="btn-more-item"   onclick="event.stopPropagation();showItemSheet('${item.id}')" title="Więcej">⋯</button>
     ${isTGPending ? `<span style="font-size:11px;color:var(--green);margin-left:4px" title="Oznaczone przez Telegram">📲</span><button class="btn-tg-confirm" onclick="event.stopPropagation();confirmTGItem('${item.id}')" title="Zatwierdź jako zrobione">✅ Zatwierdź</button><button class="btn-tg-reject" onclick="event.stopPropagation();rejectTGItem2('${item.id}')" title="Cofnij — wróć do normalnego">↩️</button>` : ''}
+    ${isTGDone ? `<span style="font-size:11px;color:var(--muted);margin-left:4px" title="Zrobione przez Telegram">📲</span>` : ''}
   `;
 
   // Expand panel (subtasks + optional note) — visible when noteOpen
