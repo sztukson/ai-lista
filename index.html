@@ -30,7 +30,8 @@
   .header p  { font-size: 12px; color: var(--muted); }
 
   .overview { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 20px; }
-  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 9px; padding: 12px 14px; text-align: center; }
+  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 9px; padding: 12px 14px; text-align: center; cursor: pointer; transition: border-color .15s; }
+  .stat-card:hover { border-color: var(--cyan); }
   .stat-value { font-size: 24px; font-weight: 700; font-family: 'JetBrains Mono',monospace; margin-bottom: 3px; }
   .stat-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .07em; }
 
@@ -94,6 +95,25 @@
 
   /* SECTION */
   .section { margin-bottom: 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .proj-group { margin-bottom: 16px; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .proj-group-header { display: flex; align-items: center; gap: 8px; padding: 10px 14px; cursor: pointer; font-weight: 700; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; background: var(--surface2); user-select: none; }
+  .proj-group-header:hover { background: #2d333b; }
+  .proj-group-header .pg-count { margin-left: auto; background: var(--surface); border: 1px solid var(--border); padding: 1px 7px; border-radius: 10px; font-size: 10px; font-weight: 400; }
+  .proj-group-header .pg-chev { font-size: 10px; transition: transform .2s; }
+  .proj-group.pg-collapsed .pg-chev { transform: rotate(-90deg); }
+  .proj-group-body { padding: 8px; }
+  .proj-group.pg-collapsed .proj-group-body { display: none; }
+  .pg-sub { margin-bottom: 6px; }
+  .pg-sub-header { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); padding: 4px 6px 2px; display: flex; align-items: center; gap: 6px; cursor: pointer; }
+  .pg-sub-header:hover { color: var(--fg); }
+  .pg-sub-header .pg-sub-count { font-weight: 400; }
+  .pg-sub-items { padding: 0 0 4px; }
+  .pg-sub.pg-sub-collapsed .pg-sub-items { display: none; }
+  /* Project separator inside quadrant */
+  .pg-sub-proj { margin: 10px 0 4px; }
+  .pg-sub-proj .pg-sub-header { font-size: 11px; font-weight: 800; letter-spacing: .08em; justify-content: center; text-align: center; padding: 5px 10px; border-radius: 6px; color: var(--pc, var(--fg)); background: rgba(var(--pcRGB, 139,148,158), .10); border: 1px solid rgba(var(--pcRGB, 139,148,158), .22); }
+  .pg-sub-proj .pg-sub-header:hover { background: rgba(var(--pcRGB, 139,148,158), .18); }
+  .pg-sub-proj .pg-sub-header .pg-sub-count { font-size: 10px; font-weight: 700; background: rgba(var(--pcRGB, 139,148,158), .18); padding: 1px 6px; border-radius: 10px; margin-left: 4px; }
   .section.drag-target > .sec-body { outline: 2px solid var(--cyan); outline-offset: -4px; border-radius: 8px; }
 
   .sec-header {
@@ -172,6 +192,9 @@
   .item:hover { background: var(--surface2); }
   .item.drag-over-top    { border-top: 2px solid var(--cyan) !important; }
   .item.drag-over-bottom { border-bottom: 2px solid var(--cyan) !important; }
+  .item.drag-over-subtask { background: rgba(57,208,200,.12) !important; border-color: var(--cyan) !important; outline: 2px solid var(--cyan); outline-offset: -2px; }
+  .item.drag-over-subtask::after { content: '↳ podzadanie'; position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 10px; color: var(--cyan); font-weight: 700; pointer-events: none; }
+  .item { position: relative; }
   .item.dragging         { opacity: .2; }
   .item.is-done .item-text { text-decoration: line-through; color: var(--muted); }
   .item.is-done .num       { opacity: .4; }
@@ -201,6 +224,9 @@
   .badge-cat.cat-telegram { background: rgba(0,188,212,.15);   color: var(--cyan);   border: 1px solid rgba(0,188,212,.3);  }
   .badge-cat.cat-szpilki  { background: rgba(163,113,247,.15); color: var(--purple); border: 1px solid rgba(163,113,247,.3);}
   .badge-cat.cat-vibecoding{ background: rgba(163,113,247,.15);color: var(--purple); border: 1px solid rgba(163,113,247,.3);}
+  .badge-cat.cat-fundacja  { background: rgba(232,197,71,.15);  color: #e8c547;       border: 1px solid rgba(232,197,71,.3);  }
+  .badge-cat.cat-cykliczne { background: rgba(57,208,200,.15);  color: var(--cyan);   border: 1px solid rgba(57,208,200,.3);  }
+  .badge-cat.cat-spotkania { background: rgba(188,140,255,.15); color: var(--purple); border: 1px solid rgba(188,140,255,.3); }
   .badge-cat { cursor: pointer; }
   .badge-cat:hover { opacity: .75; }
 
@@ -344,6 +370,78 @@
   }
   .note-area:focus { border-color: var(--blue); color: var(--text); }
   .note-area::placeholder { color: var(--border); }
+
+  /* ITEM EXPAND */
+  .item.is-expanded { border-color: rgba(57,208,200,.2) !important; background: rgba(57,208,200,.03); }
+  .item-detail {
+    flex-basis: 100%; width: 100%;
+    padding: 6px 8px 4px 76px;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  /* SUBTASKS */
+  .subtask-section { display: flex; flex-direction: column; gap: 4px; }
+  .subtask-header { display: flex; align-items: center; gap: 8px; font-size: 10px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .06em; padding: 2px 0; }
+  .subtask-progress-bar { flex: 1; height: 4px; background: var(--surface2); border-radius: 99px; overflow: hidden; }
+  .subtask-progress-fill { height: 100%; background: var(--green); border-radius: 99px; transition: width .3s; }
+  .subtask-count { font-family: 'JetBrains Mono', monospace; color: var(--cyan); }
+  .subtask-item { display: flex; align-items: center; gap: 7px; padding: 5px 0; border-bottom: 1px solid rgba(48,54,61,.5); }
+  .subtask-item:last-child { border-bottom: none; }
+  .st-cb { width: 14px; height: 14px; border-radius: 3px; border: 1.5px solid var(--border); flex-shrink: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .15s; }
+  .st-cb:hover { border-color: var(--green); }
+  .st-cb.st-done { background: var(--green); border-color: var(--green); }
+  .st-cb.st-done::after { content: '✓'; font-size: 9px; color: #000; font-weight: 900; }
+  .st-text { flex: 1; font-size: 12px; color: var(--text); line-height: 1.4; }
+  .st-text.st-done { text-decoration: line-through; color: var(--muted); }
+  .st-del { background: none; border: none; color: var(--border); cursor: pointer; font-size: 12px; padding: 0 3px; transition: color .12s; }
+  .st-del:hover { color: var(--red); }
+  .subtask-add-row { display: flex; gap: 6px; margin-top: 4px; }
+  .subtask-add-input { flex: 1; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 6px 9px; color: var(--text); font-family: inherit; font-size: 12px; outline: none; }
+  .subtask-add-input:focus { border-color: var(--cyan); }
+  .subtask-add-input::placeholder { color: var(--border); }
+  .subtask-add-btn { padding: 6px 12px; border-radius: 6px; border: 1px solid var(--cyan); background: rgba(57,208,200,.1); color: var(--cyan); font-size: 11px; font-weight: 700; cursor: pointer; }
+  .st-badge-inline { display: inline-flex; align-items: center; gap: 3px; margin-left: 6px; font-size: 10px; font-weight: 700; color: var(--green); font-family: 'JetBrains Mono', monospace; vertical-align: middle; background: rgba(57,208,200,.12); border: 1px solid rgba(57,208,200,.3); border-radius: 5px; padding: 1px 5px; }
+  @media (max-width: 640px) { .item-detail { padding-left: 36px; } }
+
+  /* TREE CHILDREN */
+  .item-children { width: 100%; display: flex; flex-direction: column; gap: 3px; padding: 6px 0 2px 20px; border-left: 2px solid var(--border); margin-left: 14px; }
+  .item.is-child { background: rgba(255,255,255,.015); border-color: rgba(48,54,61,.7); }
+  .item.is-child .num { display: none; }
+  .item.is-child .drag-handle { display: none; }
+  .btn-promote { background: rgba(139,148,158,.08); border: 1px solid var(--border); color: var(--muted); border-radius: 4px; padding: 2px 7px; font-size: 10px; cursor: pointer; flex-shrink: 0; white-space: nowrap; }
+  .btn-promote:hover { background: rgba(57,208,200,.15); border-color: var(--cyan); color: var(--cyan); }
+  .overdue-parent-ctx { font-size: 10px; color: var(--muted); padding: 4px 8px; background: var(--surface2); border-radius: 6px; margin-bottom: 3px; }
+
+  /* CYKLICZNE VIEW */
+  .cyc-wrap { display: flex; flex-direction: column; gap: 10px; padding: 4px 0 100px; }
+  .cyc-add-form { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px; display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end; margin-bottom: 4px; }
+  .cyc-add-form input, .cyc-add-form select { background: var(--surface2); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 7px 10px; font-size: 13px; font-family: inherit; outline: none; }
+  .cyc-add-form input { flex: 1; min-width: 180px; }
+  .cyc-add-form input:focus, .cyc-add-form select:focus { border-color: var(--green); }
+  .cyc-add-form .btn-cyc-add { background: rgba(63,185,80,.15); border: 1px solid var(--green); color: var(--green); border-radius: 6px; padding: 7px 16px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit; }
+  .cyc-item { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; display: flex; align-items: center; gap: 10px; transition: border-color .15s; }
+  .cyc-item.cyc-overdue  { border-color: rgba(248,81,73,.5);  background: rgba(248,81,73,.04);  }
+  .cyc-item.cyc-soon     { border-color: rgba(210,153,34,.5);  background: rgba(210,153,34,.04); }
+  .cyc-item.cyc-ok       { border-color: rgba(63,185,80,.3);   background: rgba(63,185,80,.03);  }
+  .cyc-badge { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 99px; white-space: nowrap; flex-shrink: 0; }
+  .cyc-badge.cyc-overdue { background: rgba(248,81,73,.2);  color: var(--red);   }
+  .cyc-badge.cyc-soon    { background: rgba(210,153,34,.2);  color: var(--yellow); }
+  .cyc-badge.cyc-ok      { background: rgba(63,185,80,.15);  color: var(--green); }
+  .cyc-text { flex: 1; font-size: 13px; font-weight: 500; color: var(--text); min-width: 0; }
+  .cyc-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .cyc-rhythm { font-size: 10px; color: var(--cyan); font-family: 'JetBrains Mono',monospace; background: rgba(57,208,200,.1); padding: 2px 6px; border-radius: 99px; flex-shrink: 0; }
+  .cyc-done-btn { background: rgba(63,185,80,.12); border: 1px solid var(--green); color: var(--green); border-radius: 6px; padding: 5px 11px; font-size: 11px; font-weight: 700; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
+  .cyc-done-btn:hover { background: rgba(63,185,80,.25); }
+  .cyc-del-btn { background: none; border: none; color: var(--border); cursor: pointer; font-size: 14px; padding: 4px; flex-shrink: 0; }
+  .cyc-del-btn:hover { color: var(--red); }
+  .cyc-section-hdr { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); padding: 8px 2px 4px; }
+  .cyc-extra { width: 100%; padding-top: 8px; border-top: 1px solid var(--border); margin-top: 2px; }
+  .cyc-extra-label { font-size: 10px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 6px; }
+  .cyc-day-row { display: flex; gap: 5px; flex-wrap: wrap; }
+  .cyc-day-btn { width: 34px; height: 30px; border-radius: 6px; border: 1.5px solid var(--border); background: var(--surface2); color: var(--muted); font-size: 11px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .15s; font-family: inherit; }
+  .cyc-day-btn.active { background: rgba(57,208,200,.18); border-color: var(--cyan); color: var(--cyan); }
+  .cyc-mday-grid { display: flex; flex-wrap: wrap; gap: 4px; max-width: 340px; }
+  .cyc-mday-btn { width: 28px; height: 26px; border-radius: 4px; border: 1px solid var(--border); background: var(--surface2); color: var(--muted); font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .15s; font-family: 'JetBrains Mono',monospace; }
+  .cyc-mday-btn.active { background: rgba(57,208,200,.18); border-color: var(--cyan); color: var(--cyan); }
 
   /* EXPORT/IMPORT */
   .search-row { display: none; }
@@ -739,6 +837,27 @@
   .proj-card-desc { font-size: 11px; color: var(--muted); }
   .proj-card-count { font-size: 11px; color: var(--purple); font-family: 'JetBrains Mono', monospace; margin-top: auto; }
   .proj-back { margin-bottom: 12px; }
+  .proj-card-add { border-style: dashed; border-color: var(--border); opacity: .65; }
+  .proj-card-add:hover { opacity: 1; border-color: var(--cyan); background: rgba(57,208,200,.06); }
+  /* sub-project modal */
+  #add-subproj-modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:9999; align-items:center; justify-content:center; }
+  #add-subproj-modal.open { display:flex; }
+  .subproj-modal-box { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:24px 22px; width:min(380px,92vw); display:flex; flex-direction:column; gap:12px; }
+  .subproj-modal-box h3 { margin:0; font-size:15px; }
+  .subproj-modal-input { background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:8px 11px; color:var(--text); font-size:13px; width:100%; box-sizing:border-box; }
+  .subproj-modal-row { display:flex; gap:8px; }
+  .subproj-modal-row .subproj-modal-input { flex:1; }
+  .subproj-btn { padding:8px 16px; border-radius:8px; border:1px solid var(--border); background:var(--surface2); color:var(--text); font-size:13px; cursor:pointer; }
+  .subproj-btn.primary { background:var(--purple); border-color:var(--purple); color:#fff; }
+  /* TG Review section */
+  .tg-review-header { padding:10px 14px 6px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--cyan); display:flex; align-items:center; gap:8px; }
+  .tg-review-count { background:rgba(0,188,212,.2); color:var(--cyan); border-radius:10px; padding:1px 7px; font-size:10px; }
+  .tg-review-item { display:flex; align-items:center; gap:8px; padding:8px 14px; border-top:1px solid rgba(0,188,212,.12); font-size:13px; }
+  .tg-review-text { flex:1; color:var(--text); }
+  .tg-proj-label { color:var(--muted); font-size:11px; margin-right:3px; }
+  .tg-review-actions { display:flex; gap:4px; flex-shrink:0; }
+  .tg-btn { background:none; border:1px solid var(--border); border-radius:6px; padding:3px 8px; cursor:pointer; font-size:14px; transition:background .15s; }
+  .tg-btn:hover { background:var(--surface2); }
 </style>
 </head>
 <body>
@@ -750,9 +869,11 @@
     <button class="proj-tab" onclick="switchProject('dp')" id="pt-dp" style="color:var(--blue)">🎬 DOP</button>
     <button class="proj-tab" onclick="switchProject('vns')" id="pt-vns" style="color:var(--orange)">📱 VNS</button>
     <button class="proj-tab" onclick="switchProject('projekty')" id="pt-projekty" style="color:var(--purple)">📂 Projekty</button>
-    <button class="proj-tab" onclick="switchProject('vibecoding')" id="pt-vibecoding" style="color:var(--purple)">💻 Vibe Coding</button>
+    <button class="proj-tab" onclick="switchProject('vibecoding')" id="pt-vibecoding" style="color:var(--purple)">💻 Vibe</button>
     <button class="proj-tab" onclick="switchProject('telegram')" id="pt-telegram" style="color:var(--cyan)">📲 Telegram</button>
     <button class="proj-tab" onclick="switchProject('spotkania')" id="pt-spotkania" style="color:var(--purple)">🤝 Spotkania</button>
+    <button class="proj-tab" onclick="switchProject('cykliczne')" id="pt-cykliczne" style="color:var(--green)">🔁 Cykliczne</button>
+    <button class="proj-tab" onclick="switchProject('fundacja')" id="pt-fundacja" style="color:#e8c547">🏛️ Fundacja</button>
   </div>
 
   <div class="header">
@@ -760,11 +881,13 @@
     <p>Jakub Sztuk · <span id="last-saved">—</span> · <span id="sb-status" title="Supabase" style="color:var(--muted);font-size:11px">☁ …</span></p>
   </div>
 
+  <div id="tg-review-section" style="display:none;margin:0 0 16px;background:rgba(0,188,212,.07);border:1px solid rgba(0,188,212,.25);border-radius:10px;overflow:hidden;"></div>
+
   <div class="overview">
-    <div class="stat-card"><div class="stat-value" id="s-q1" style="color:var(--red)">0</div><div class="stat-label">🔴 Teraz</div></div>
-    <div class="stat-card"><div class="stat-value" id="s-q2" style="color:var(--yellow)">0</div><div class="stat-label">🟡 Zaplanuj</div></div>
-    <div class="stat-card"><div class="stat-value" id="s-done" style="color:var(--green)">0</div><div class="stat-label">✓ Zrobione</div></div>
-    <div class="stat-card"><div class="stat-value" id="s-inprogress" style="color:var(--orange)">0</div><div class="stat-label">⏳ W trakcie</div></div>
+    <div class="stat-card" onclick="scrollToStat('q1')"><div class="stat-value" id="s-q1" style="color:var(--red)">0</div><div class="stat-label">🔴 Teraz</div></div>
+    <div class="stat-card" onclick="scrollToStat('q2')"><div class="stat-value" id="s-q2" style="color:var(--yellow)">0</div><div class="stat-label">🟡 Zaplanuj</div></div>
+    <div class="stat-card" onclick="scrollToStat('done')"><div class="stat-value" id="s-done" style="color:var(--green)">0</div><div class="stat-label">✓ Zrobione</div></div>
+    <div class="stat-card" onclick="scrollToStat('inprogress')"><div class="stat-value" id="s-inprogress" style="color:var(--orange)">0</div><div class="stat-label">⏳ W trakcie</div></div>
   </div>
 
   <div class="main-progress">
@@ -810,11 +933,19 @@
       <button class="btn-mic" id="btn-mic" onclick="toggleMic()" title="Dyktuj głosem">🎤</button>
     </div>
     <div class="add-row">
-      <select class="add-select" id="new-cat">
-        <option value="">— Kategoria —</option>
+      <select class="add-select" id="new-cat" style="display:none" onchange="onCatChange()">
+        <option value="">— Projekt —</option>
         <option value="prywatne">🔴 Prywatne</option>
-        <option value="dp">🟠 DOP</option>
-        <option value="vns">🔵 VNS</option>
+        <option value="dp">🎬 DOP</option>
+        <option value="vns">📱 VNS</option>
+        <option value="projekty">📂 Projekty</option>
+        <option value="vibecoding">💻 Vibe</option>
+        <option value="fundacja">🏛️ Fundacja</option>
+        <option value="cykliczne">🔁 Cykliczne</option>
+      </select>
+      <select class="add-select" id="new-subproj" style="display:none">
+        <option value="">— Wybierz projekt —</option>
+        <option value="szpilki">🎭 Zdunek — Szpilki</option>
       </select>
       <select class="add-select" id="new-sec" onchange="onSecChange()">
         <option value="todo">📋 Do Zrobienia</option>
@@ -827,7 +958,7 @@
         <option value="q3">🟠 Pilne + Nieważne</option>
         <option value="q4">⚪ Niepilne + Nieważne</option>
       </select>
-      <input class="add-date" id="new-date" type="date">
+      <input class="add-date" id="new-date" type="date" onclick="try{this.showPicker()}catch(e){}">
       <label class="toggle-pawel" id="lbl-pawel" onclick="togglePawelFlag()">
         <input type="checkbox" id="new-pawel"> [P] Paweł
       </label>
@@ -881,6 +1012,7 @@
   <input class="add-date" id="bulk-date" type="date" style="width:140px;padding:5px 8px;" title="Przypisz datę">
   <button class="btn-bulk" onclick="applyBulkDate()">📅 Dodaj datę</button>
   <button class="btn-bulk" onclick="applyBulkStatus('inprogress')">⏳ W trakcie</button>
+  <button class="btn-bulk" onclick="showBulkMoveMenu(event)">📂 Przenieś</button>
   <button class="btn-bulk" onclick="clearSelection()" style="color:var(--muted)">✕ Odznacz</button>
 </div>
 
@@ -901,6 +1033,8 @@ function itemToRow(item, proj) {
     cat: item.cat || null, note: item.note || '',
     completed_at: item.completedAt || null,
     prev_sec: item._prevSec || null, prev_quad: item._prevQuad || null,
+    due_date: item.dueDate || null,
+    tg_reviewed: item.tgReviewed || false,
   };
 }
 
@@ -912,6 +1046,9 @@ function rowToItem(row) {
     cat: row.cat, note: row.note || '',
     completedAt: row.completed_at,
     _prevSec: row.prev_sec, _prevQuad: row.prev_quad,
+    _project: row.project || null,
+    dueDate: row.due_date || null,
+    tgReviewed: row.tg_reviewed || false,
   };
 }
 
@@ -934,21 +1071,77 @@ async function sbDelete(id) {
   try { await sb.from('tasks').delete().eq('id', id); } catch(e) {}
 }
 
+// ── TG REVIEW ─────────────────────────────────────────────────────────────────
+let tgReviewItems = [];
+
+async function fetchTGReview() {
+  try {
+    const { data } = await sb.from('tasks').select('*')
+      .eq('tg_reviewed', true).eq('checked', false).order('id', { ascending: false }).limit(30);
+    tgReviewItems = (data || []).map(rowToItem);
+    renderTGReview();
+  } catch(e) { console.warn('fetchTGReview', e); }
+}
+
+async function confirmTGDone(id) {
+  await sb.from('tasks').update({ checked: true, sec: 'done', tg_reviewed: false, completed_at: new Date().toISOString() }).eq('id', id);
+  tgReviewItems = tgReviewItems.filter(i => i.id !== id);
+  renderTGReview();
+}
+
+async function rejectTGItem(id) {
+  await sb.from('tasks').update({ tg_reviewed: false }).eq('id', id);
+  tgReviewItems = tgReviewItems.filter(i => i.id !== id);
+  renderTGReview();
+}
+
+function tgFormatDate(iso) {
+  if (!iso) return '';
+  try {
+    const d = new Date(iso + 'T00:00:00');
+    const now = new Date(); now.setHours(0,0,0,0);
+    const diff = Math.round((d - now) / 86400000);
+    if (diff === 0) return 'dziś';
+    if (diff === 1) return 'jutro';
+    if (diff < 0)  return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')} ⚠️`;
+    return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}`;
+  } catch(e) { return iso; }
+}
+
+function renderTGReview() {
+  const el = document.getElementById('tg-review-section');
+  if (!el) return;
+  if (!tgReviewItems.length) { el.style.display = 'none'; return; }
+  el.style.display = '';
+  const PROJ = { prywatne:'Prywatne', vns:'VNS', dp:'DOP', szpilki:'Szpilki', vibecoding:'Vibe', telegram:'Telegram', spotkania:'Spotkania', fundacja:'Fundacja', projekty:'Projekty' };
+  const rows = tgReviewItems.map(t => {
+    const proj   = PROJ[t._project || t.cat] || t._project || '';
+    const ddStr  = tgFormatDate(t.dueDate);
+    const dd     = ddStr ? ` · <span style="color:var(--cyan);font-size:11px">${ddStr}</span>` : '';
+    return `<div class="tg-review-item">
+      <span class="tg-review-text">${proj ? `<span class="tg-proj-label">[${proj}]</span> ` : ''}${escHtml(t.text)}${dd}</span>
+      <span class="tg-review-actions">
+        <button class="tg-btn tg-btn-done" onclick="confirmTGDone('${t.id}')" title="Zatwierdź jako zrobione">✅</button>
+        <button class="tg-btn tg-btn-back" onclick="rejectTGItem('${t.id}')" title="Cofnij — wróć do listy">↩️</button>
+      </span>
+    </div>`;
+  }).join('');
+  el.innerHTML = `<div class="tg-review-header">📲 Do przeglądu TG <span class="tg-review-count">${tgReviewItems.length}</span></div>${rows}`;
+}
+
 async function syncFromSupabase() {
   try {
     if (activeProject === 'general') {
-      const results = await Promise.all(CAT_PROJECTS.map(k => sbFetch(k)));
-      const merged = [];
-      CAT_PROJECTS.forEach((catKey, i) => {
-        const src = results[i] || loadCatItems(catKey);
-        src.forEach(item => { if (!item.cat) item.cat = catKey; merged.push(item); });
-      });
-      items = merged;
+      const { data, error } = await sb.from('tasks').select('*').neq('project', 'general');
+      if (error) throw error;
+      items = (data || []).map(row => ({ ...rowToItem(row), _project: row.project }));
     } else if (activeProject !== 'projekty') {
       const remote = await sbFetch(activeProject);
-      if (remote && remote.length) items = remote;
+      if (remote !== null) items = remote; // null=error (keep existing); [] = valid empty project
     } else return;
+    migrateEmbeddedSubtasks();
     render();
+    fetchTGReview();
     const sbEl = document.getElementById('sb-status');
     if (sbEl) sbEl.innerHTML = '<span style="color:var(--green)">☁ online</span>';
   } catch(e) {
@@ -991,9 +1184,11 @@ const SECTIONS_BY_PROJECT = {
   vns:        ['todo', 'done'],
   projekty:   ['todo', 'done'],
   szpilki:    ['todo', 'done'],
-  vibecoding: ['todo', 'ai', 'pawel', 'done'],
+  vibecoding: ['todo', 'done'],
+  fundacja:   ['todo', 'done'],
   telegram:    ['todo', 'done'],
   spotkania:   ['todo', 'zaplanowane', 'done'],
+  cykliczne:   ['todo'],
 };
 
 const DEFAULT_ITEMS = [
@@ -1071,21 +1266,76 @@ const DEFAULT_ITEMS_WIDEO = [
   { id:'wi6', sec:'todo', quad:'q1', checked:false, priority:true,  pawel:false, note:'', text:'Przelew za film "Odbicie" — poprosić o realizację' },
 ];
 
+const DEFAULT_ITEMS_FUNDACJA = [
+  { id:'fn0a', sec:'todo', quad:'q1', checked:false, priority:true,  pawel:false, note:'', text:'⚠️ Maria: spłać ~17 PLN zaległości w mBanku fundacji (przed złożeniem KRS!)' },
+  { id:'fn0b', sec:'todo', quad:'q1', checked:false, priority:true,  pawel:false, note:'', text:'⚠️ Maria: złóż CIT-8 zerowy za 2025 r. → podatki.gov.pl → e-Deklaracje (termin przekroczony!)' },
+  { id:'fn0c', sec:'todo', quad:'q1', checked:false, priority:true,  pawel:false, note:'', text:'Zbierz od Marii: PESEL, nr i seria dowodu, adres zameldowania' },
+  { id:'fn1a', sec:'todo', quad:'q1', checked:false, priority:false, pawel:false, note:'', text:'Pobierz stary statut z KRS → krs.ms.gov.pl → 0001058833 → Dokumenty (sprawdź kwotę funduszu §7)' },
+  { id:'fn1b', sec:'todo', quad:'q2', checked:false, priority:false, pawel:false, note:'', text:'Uzupełnij plik 03 — daty, PESEL Jakuba, imię ojca, adres + dane Marii' },
+  { id:'fn1c', sec:'todo', quad:'q2', checked:false, priority:false, pawel:false, note:'', text:'Uzupełnij plik 04 — daty i numery paragrafów ze statutu' },
+  { id:'fn1d', sec:'todo', quad:'q2', checked:false, priority:false, pawel:false, note:'', text:'Wydrukuj pliki 03, 04, 05 — po 2 egzemplarze (jeden z podpisami dla Was, drugi do KRS)' },
+  { id:'fn1e', sec:'todo', quad:'q2', checked:false, priority:false, pawel:false, note:'', text:'Sprawdź profil zaufany Jakuba → login.gov.pl (potrzebny do KRS online)' },
+  { id:'fn2a', sec:'todo', quad:'q1', checked:false, priority:false, pawel:false, note:'', text:'SPOTKANIE z Marią: plik 03 — oboje podpisują (Maria pierwsza, 2x: rezygnacja + zgoda na Wiceprezesa)' },
+  { id:'fn2b', sec:'todo', quad:'q2', checked:false, priority:false, pawel:false, note:'', text:'Podpisz plik 04 jako nowy Prezes (zmiana nazwy, statutu, PKD, DG)' },
+  { id:'fn2c', sec:'todo', quad:'q2', checked:false, priority:false, pawel:false, note:'', text:'Podpisz plik 05 — nowy statut Fundacji FORMA' },
+  { id:'fn3a', sec:'todo', quad:'q1', checked:false, priority:false, pawel:false, note:'', text:'prs.ms.gov.pl → KRS-Z20 → zaloguj profilem zaufanym → wyszukaj KRS 0001058833' },
+  { id:'fn3b', sec:'todo', quad:'q2', checked:false, priority:false, pawel:false, note:'', text:'Wypełnij KRS-Z20: zmiana zarządu, nazwa→Fundacja FORMA, statut, PKD, DG=TAK' },
+  { id:'fn3c', sec:'todo', quad:'q2', checked:false, priority:false, pawel:false, note:'', text:'Załącz skany: plik 03 + plik 04 + plik 05 (czytelne PDF/JPG z podpisami)' },
+  { id:'fn3d', sec:'todo', quad:'q1', checked:false, priority:false, pawel:false, note:'', text:'Opłać KRS: ~687 PLN (140 zarząd + 140 nazwa + 390 statut+MSiG) + 17 PLN mBank' },
+  { id:'fn4a', sec:'todo', quad:'q1', checked:false, priority:true,  pawel:false, note:'', text:'⏰ NIP-2 do US — TERMIN 7 DNI od wpisu KRS! (ustaw przypomnienie od razu po złożeniu)' },
+  { id:'fn4b', sec:'todo', quad:'q1', checked:false, priority:true,  pawel:false, note:'', text:'⏰ RG-OP do GUS — TERMIN 14 DNI od wpisu KRS! → stat.gov.pl' },
+  { id:'fn4c', sec:'todo', quad:'q2', checked:false, priority:false, pawel:false, note:'', text:'mBank — aktualizacja danych (odpis KRS) — rozważ zmianę na PKO/ING/Nest (darmowe NGO)' },
+  { id:'fn4d', sec:'todo', quad:'q2', checked:false, priority:false, pawel:false, note:'', text:'Uchwała zarządu #1 po rejestracji — plan działania 2026, potwierdzenie składu' },
+  { id:'fn4e', sec:'todo', quad:'q2', checked:false, priority:false, pawel:false, note:'', text:'witkac.pl — zarejestruj profil organizacji (granty NCK, MKiDN)' },
+  { id:'fn4f', sec:'todo', quad:'q2', checked:false, priority:false, pawel:false, note:'', text:'niw.gov.pl — rejestracja dla wniosków NOWEFIO (nabór jesień 2026, 100-250k PLN)' },
+  { id:'fn4g', sec:'todo', quad:'q1', checked:false, priority:false, pawel:false, note:'', text:'PISF DKF — złóż wniosek w najbliższym naborze (15-30k PLN rocznie, bez wkładu własnego)' },
+];
+
 const PROJECTS = {
   general:    { label: 'Wszystkie',         storageKey: 'ai-lista-v5',          defaultItems: DEFAULT_ITEMS,          catKey: null       },
   prywatne:   { label: 'Prywatne',          storageKey: 'ai-lista-prywatne',    defaultItems: DEFAULT_ITEMS_PRYWATNE, catKey: 'prywatne' },
   dp:         { label: 'DOP',               storageKey: 'ai-lista-dp',          defaultItems: [],                     catKey: 'dp'       },
   vns:        { label: 'VNS',               storageKey: 'ai-lista-vns',         defaultItems: DEFAULT_ITEMS_WIDEO,    catKey: 'vns'      },
   szpilki:    { label: 'Zdunek — Szpilki', storageKey: 'ai-lista-szpilki',     defaultItems: DEFAULT_ITEMS_SZPILKI,  catKey: null       },
+  cykliczne:  { label: 'Cykliczne',        storageKey: 'ai-lista-cykliczne',   defaultItems: [],                     catKey: null       },
   vibecoding: { label: 'Vibe Coding',       storageKey: 'ai-lista-vibecoding',  defaultItems: [],                     catKey: null       },
   telegram:   { label: 'Telegram',          storageKey: 'ai-lista-telegram',    defaultItems: [],                     catKey: 'telegram'  },
   spotkania:  { label: 'Spotkania',         storageKey: 'ai-lista-spotkania',   defaultItems: [],                     catKey: null        },
+  fundacja:   { label: 'Fundacja FORMA',    storageKey: 'ai-lista-fundacja',    defaultItems: DEFAULT_ITEMS_FUNDACJA, catKey: null        },
 };
 
 const CAT_PROJECTS = ['prywatne', 'dp', 'vns', 'telegram'];
-const SUB_PROJECTS = {
+const SUB_PROJECTS_BUILTIN = {
   szpilki: { label: 'Zdunek — Szpilki', icon: '🎭', desc: 'Teledysk / produkcja' },
 };
+// merged at runtime with user-added projects from localStorage
+let SUB_PROJECTS = Object.assign({}, SUB_PROJECTS_BUILTIN);
+function loadCustomSubProjects() {
+  try {
+    const raw = localStorage.getItem('ai-lista-custom-subprojects');
+    const custom = raw ? JSON.parse(raw) : {};
+    SUB_PROJECTS = Object.assign({}, SUB_PROJECTS_BUILTIN, custom);
+    rebuildSubProjSelect();
+  } catch(e) {}
+}
+function saveCustomSubProject(key, meta) {
+  try {
+    const raw = localStorage.getItem('ai-lista-custom-subprojects');
+    const custom = raw ? JSON.parse(raw) : {};
+    custom[key] = meta;
+    localStorage.setItem('ai-lista-custom-subprojects', JSON.stringify(custom));
+    SUB_PROJECTS[key] = meta;
+    rebuildSubProjSelect();
+  } catch(e) {}
+}
+function rebuildSubProjSelect() {
+  const sel = document.getElementById('new-subproj');
+  if (!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">— Wybierz projekt —</option>' +
+    Object.entries(SUB_PROJECTS).map(([k,m]) => `<option value="${k}">${m.icon||'📁'} ${m.label}</option>`).join('');
+  if (cur) sel.value = cur;
+}
 
 function loadCatItems(catKey) {
   const proj = PROJECTS[catKey];
@@ -1126,6 +1376,7 @@ let activeFilter = 'all';
 let activeSearch = '';
 let weekViewOpen = false;
 const openNotes = new Set();
+const openNoteTexts = new Set();
 
 // ════════════════════════════════════════
 //  UNDO HISTORY (trwałe — przeżywa F5)
@@ -1163,11 +1414,15 @@ function undo() {
   if (!undoStack.length) return;
   const state = JSON.parse(undoStack.pop());
   items = state.items;
-  state.secs.forEach(ss => { const s = sections.find(x => x.id === ss.id); if (s) s.collapsed = ss.collapsed; });
-  Object.assign(QUADS_COLLAPSED, state.qc);
-  Object.assign(DONE_SUBS_COLLAPSED, state.dc);
+  // Don't restore section/quad collapse states — keep current UI layout
   saveUndoStack();
   render();
+  if (activeProject !== 'general') autoSave();
+  else {
+    // In general view: sync each cat project back to Supabase
+    CAT_PROJECTS.forEach(catKey => sbSave(items.filter(i => i.cat === catKey), catKey));
+    saveAggregateItems();
+  }
   showToast('↩ Cofnięto', true);
   logAction('↩', 'Cofnięto akcję');
 }
@@ -1177,6 +1432,12 @@ document.addEventListener('keydown', e => {
   if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
     e.preventDefault();
     undo();
+  }
+  if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+    e.preventDefault();
+    saveAll();
+    syncFromSupabase();
+    showToast('☁ Zapisano do Supabase', false);
   }
   if (e.key === 'Escape' && editingId) {
     closeEdit();
@@ -1192,8 +1453,8 @@ document.addEventListener('keydown', e => {
 // ════════════════════════════════════════
 //  DATE UTILS
 // ════════════════════════════════════════
+function todayISO() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 const TODAY = (() => { const d = new Date(); d.setHours(0,0,0,0); return d; })();
-function todayISO() { return TODAY.toISOString().slice(0,10); }
 
 function pickerToDisplay(isoDate) {
   if (!isoDate) return '';
@@ -1252,13 +1513,70 @@ function fmtTs(iso) {
 }
 
 function getItemDate(item) {
-  // czyta TYLKO z note (prefix 📅), nie z tekstu — daty w tekście to opis, nie termin
-  const m = (item.note || '').match(/📅\s*(\d{1,2}\.\d{2}(?:\.\d{2,4})?)/);
+  const notePart = parseItemNote(item).notePart;
+  const m = notePart.match(/📅\s*(\d{1,2}\.\d{2}(?:\.\d{2,4})?)/);
   return m ? parseDate(m[1]) : null;
 }
 function getItemDateStr(item) {
-  const m = (item.note || '').match(/📅\s*(\d{1,2}\.\d{2}(?:\.\d{2,4})?)/);
+  const notePart = parseItemNote(item).notePart;
+  const m = notePart.match(/📅\s*(\d{1,2}\.\d{2}(?:\.\d{2,4})?)/);
   return m ? m[1] : null;
+}
+
+const PM = '\n---parent---\n'; // parent marker
+
+function parseItemNote(item) {
+  // Strip parent marker before processing subtasks
+  let raw = item.note || '';
+  const pidIdx = raw.indexOf(PM);
+  if (pidIdx !== -1) {
+    const afterPid = raw.slice(pidIdx + PM.length);
+    const nextM = afterPid.indexOf('\n---');
+    raw = raw.slice(0, pidIdx) + (nextM === -1 ? '' : afterPid.slice(nextM));
+  }
+  const MARKER = '\n---subtasks---\n';
+  const idx = raw.indexOf(MARKER);
+  if (idx === -1) return { notePart: raw, subtasks: [] };
+  const notePart = raw.slice(0, idx);
+  try { return { notePart, subtasks: JSON.parse(raw.slice(idx + MARKER.length)) }; }
+  catch(e) { return { notePart: raw, subtasks: [] }; }
+}
+
+function buildItemNote(notePart, subtasks) {
+  const clean = (notePart || '').replace(/\n---subtasks---\n[\s\S]*$/, '').trimEnd();
+  if (!subtasks || !subtasks.length) return clean;
+  return clean + '\n---subtasks---\n' + JSON.stringify(subtasks);
+}
+
+// ── Tree helpers ──
+function parseParent(item) {
+  const raw = item.note || '';
+  const idx = raw.indexOf(PM);
+  if (idx === -1) return null;
+  const rest = raw.slice(idx + PM.length);
+  return rest.split('\n---')[0].trim() || null;
+}
+
+function setParentInNote(note, parentId) {
+  const raw = note || '';
+  const idx = raw.indexOf(PM);
+  let base;
+  if (idx !== -1) {
+    const afterM = raw.slice(idx + PM.length);
+    const nextM = afterM.indexOf('\n---');
+    base = raw.slice(0, idx) + (nextM === -1 ? '' : afterM.slice(nextM));
+  } else {
+    base = raw;
+  }
+  return parentId ? base + PM + parentId : base;
+}
+
+function getRootItems() {
+  return items.filter(i => !parseParent(i));
+}
+
+function getChildren(parentId) {
+  return items.filter(i => parseParent(i) === parentId);
 }
 
 // ════════════════════════════════════════
@@ -1309,7 +1627,7 @@ function setSearch(val) {
 
 function applySearch(list) {
   if (!activeSearch) return list;
-  return list.filter(i => i.text.toLowerCase().includes(activeSearch) || (i.note||'').toLowerCase().includes(activeSearch));
+  return list.filter(i => i.text.toLowerCase().includes(activeSearch) || parseItemNote(i).notePart.toLowerCase().includes(activeSearch));
 }
 
 // ════════════════════════════════════════
@@ -1379,6 +1697,7 @@ function renderProjectsView() {
   grid.className = 'proj-grid';
 
   let totalAll = 0, doneAll = 0;
+  const cardEls = {};
 
   Object.entries(SUB_PROJECTS).forEach(([key, meta]) => {
     let projectItems = [];
@@ -1399,11 +1718,33 @@ function renderProjectsView() {
       <div class="proj-card-icon">${meta.icon}</div>
       <div class="proj-card-title">${meta.label}</div>
       <div class="proj-card-desc">${meta.desc}</div>
-      <div class="proj-card-count">${count} zadań do zrobienia</div>
+      <div class="proj-card-count" id="proj-count-${key}">${count} zadań do zrobienia</div>
     `;
     card.onclick = () => openSubProject(key);
     grid.appendChild(card);
+    cardEls[key] = card;
   });
+
+  // refresh counts from Supabase asynchronously
+  Object.keys(SUB_PROJECTS).forEach(key => {
+    sbFetch(key).then(remote => {
+      if (!remote) return;
+      const countEl = document.getElementById('proj-count-' + key);
+      if (countEl) countEl.textContent = remote.filter(i => !i.checked).length + ' zadań do zrobienia';
+      // update localStorage so next time it's correct
+      if (PROJECTS[key]) {
+        const state = { _saved: new Date().toISOString(), items: remote };
+        localStorage.setItem(PROJECTS[key].storageKey, JSON.stringify(state));
+      }
+    }).catch(() => {});
+  });
+
+  // ➕ Add new project card
+  const addCard = document.createElement('div');
+  addCard.className = 'proj-card proj-card-add';
+  addCard.innerHTML = `<div class="proj-card-icon">➕</div><div class="proj-card-title">Nowy projekt</div><div class="proj-card-desc">Dodaj projekt do tej listy</div>`;
+  addCard.onclick = () => openAddSubProjectModal();
+  grid.appendChild(addCard);
 
   wrap.appendChild(grid);
 
@@ -1455,7 +1796,7 @@ function renderSpotkania() {
       const card = document.createElement('div');
       card.className = 'meeting-card';
       const typs = (item.cat||'').split(',').map(s=>s.trim()).filter(Boolean);
-      const noteWithoutDate = (item.note||'').replace(/📅[\d\.]+/g,'').trim();
+      const noteWithoutDate = parseItemNote(item).notePart.replace(/📅[\d\.]+/g,'').trim();
       const dateStr = getItemDateStr(item);
       card.innerHTML = `
         <div class="meeting-avatar">${initials(item.text)}</div>
@@ -1534,9 +1875,385 @@ function deleteMeeting(id) {
   renderSpotkania();
 }
 
+// ════════════════════════════════════════
+//  CYKLICZNE (RECURRING TASKS)
+// ════════════════════════════════════════
+const RHYTHMS = {
+  daily:      { label: 'co dzień',          days: 1   },
+  weekly:     { label: 'co tydzień',         days: 7   },
+  biweekly:   { label: 'co 2 tygodnie',      days: 14  },
+  monthly:    { label: 'co miesiąc',         days: 30  },
+  quarterly:  { label: 'co 3 miesiące',      days: 91  },
+  halfyear:   { label: 'co pół roku',        days: 182 },
+  yearly:     { label: 'co rok',             days: 365 },
+  weekdays:   { label: 'wybrane dni tyg.',   days: null },
+  monthdays:  { label: 'wybrane dni mies.',  days: null },
+};
+const WEEKDAY_ORDER = [1,2,3,4,5,6,0];
+const WEEKDAY_ABBR  = ['Nd','Pn','Wt','Śr','Cz','Pt','Sb'];
+let _cycFWD = new Set();
+let _cycFMD = new Set();
+
+function parseRecurrence(item) {
+  const raw = item.note || '';
+  const MARKER = '\n---recurrence---\n';
+  const idx = raw.indexOf(MARKER);
+  const defaults = { userNote: raw, rhythm: 'yearly', last_done: null, days_of_week: [], days_of_month: [] };
+  if (idx === -1) return defaults;
+  const userNote = raw.slice(0, idx);
+  try {
+    const data = JSON.parse(raw.slice(idx + MARKER.length));
+    return { ...defaults, userNote, ...data };
+  } catch(e) { return defaults; }
+}
+
+function buildRecurrence(userNote, rhythm, last_done, extra = {}) {
+  const clean = (userNote || '').trimEnd();
+  return clean + '\n---recurrence---\n' + JSON.stringify({ rhythm, last_done, ...extra });
+}
+
+function computeNextDue(last_done, rhythm, extra = {}) {
+  if (rhythm === 'weekdays') {
+    const days = (extra.days_of_week || []).map(Number);
+    if (!days.length) return null;
+    const d = last_done ? new Date(new Date(last_done).getTime() + 86400000) : new Date();
+    d.setHours(0,0,0,0);
+    for (let i = 0; i < 14; i++) {
+      if (days.includes(d.getDay())) return new Date(d);
+      d.setDate(d.getDate() + 1);
+    }
+    return null;
+  }
+  if (rhythm === 'monthdays') {
+    const mdays = (extra.days_of_month || []).map(Number).sort((a,b) => a-b);
+    if (!mdays.length) return null;
+    const d = last_done ? new Date(new Date(last_done).getTime() + 86400000) : new Date();
+    d.setHours(0,0,0,0);
+    for (let i = 0; i < 62; i++) {
+      if (mdays.includes(d.getDate())) return new Date(d);
+      d.setDate(d.getDate() + 1);
+    }
+    return null;
+  }
+  const r = RHYTHMS[rhythm];
+  if (!r || !r.days) return null;
+  if (!last_done) return null;
+  const d = new Date(last_done);
+  d.setDate(d.getDate() + r.days);
+  return d;
+}
+
+function cycRhythmLabel(rhythm, days_of_week, days_of_month) {
+  if (rhythm === 'weekdays') {
+    if (!days_of_week?.length) return 'wybrane dni';
+    return days_of_week.map(d => WEEKDAY_ABBR[d]).join('+');
+  }
+  if (rhythm === 'monthdays') {
+    if (!days_of_month?.length) return 'wybrane dni';
+    return days_of_month.map(d => d + '.').join(' ');
+  }
+  return RHYTHMS[rhythm]?.label || rhythm;
+}
+
+function cycStatus(item) {
+  const { rhythm, last_done, days_of_week, days_of_month } = parseRecurrence(item);
+  const nextDue = computeNextDue(last_done, rhythm, { days_of_week, days_of_month });
+  if (!nextDue) return { cls: 'cyc-ok', label: 'Nigdy nie zrobione', diff: null };
+  const today = new Date(); today.setHours(0,0,0,0);
+  const diff = Math.round((nextDue - today) / 86400000);
+  if (diff < 0)  return { cls: 'cyc-overdue', label: `${Math.abs(diff)}d zaległe`, diff };
+  if (diff === 0) return { cls: 'cyc-soon',   label: 'Dziś!',                      diff };
+  if (diff <= 14) return { cls: 'cyc-soon',   label: `za ${diff}d`,                diff };
+  return               { cls: 'cyc-ok',      label: `za ${diff}d`,                diff };
+}
+
+function toggleCycWeekday(d) {
+  if (_cycFWD.has(d)) _cycFWD.delete(d); else _cycFWD.add(d);
+  document.querySelectorAll('.cyc-day-btn').forEach(b => b.classList.toggle('active', _cycFWD.has(+b.dataset.d)));
+}
+function toggleCycMonthday(d) {
+  if (_cycFMD.has(d)) _cycFMD.delete(d); else _cycFMD.add(d);
+  document.querySelectorAll('.cyc-mday-btn').forEach(b => b.classList.toggle('active', _cycFMD.has(+b.dataset.d)));
+}
+function onCycRhythmChange() {
+  const rhythm = document.getElementById('cyc-new-rhythm')?.value;
+  const extra = document.getElementById('cyc-extra');
+  if (!extra) return;
+  _cycFWD.clear(); _cycFMD.clear();
+  if (rhythm === 'weekdays') {
+    extra.innerHTML = `<div class="cyc-extra-label">Dni tygodnia</div><div class="cyc-day-row">${
+      WEEKDAY_ORDER.map(d => `<button class="cyc-day-btn" data-d="${d}" onclick="toggleCycWeekday(${d})">${WEEKDAY_ABBR[d]}</button>`).join('')
+    }</div>`;
+  } else if (rhythm === 'monthdays') {
+    extra.innerHTML = `<div class="cyc-extra-label">Dni miesiąca</div><div class="cyc-mday-grid">${
+      Array.from({length:31},(_,i)=>i+1).map(d => `<button class="cyc-mday-btn" data-d="${d}" onclick="toggleCycMonthday(${d})">${d}</button>`).join('')
+    }</div>`;
+  } else {
+    extra.innerHTML = '';
+  }
+}
+
+function renderCykliczne() {
+  const wrap = document.getElementById('sections-wrap');
+  wrap.innerHTML = '';
+
+  const container = document.createElement('div');
+  container.className = 'cyc-wrap';
+
+  // ── Add form ──
+  _cycFWD.clear(); _cycFMD.clear();
+  const form = document.createElement('div');
+  form.className = 'cyc-add-form';
+  form.innerHTML = `
+    <input id="cyc-new-text" placeholder="Nazwa zadania cyklicznego…" style="flex:1;min-width:180px" />
+    <select id="cyc-new-rhythm" onchange="onCycRhythmChange()">
+      ${Object.entries(RHYTHMS).map(([k, v]) => `<option value="${k}">${v.label}</option>`).join('')}
+    </select>
+    <input id="cyc-new-lastdone" type="date" title="Ostatnie wykonanie (opcjonalnie)" onclick="try{this.showPicker()}catch(e){}">
+    <button class="btn-cyc-add" onclick="addCyclicTask()">+ Dodaj</button>
+    <div id="cyc-extra" class="cyc-extra" style="display:none"></div>
+  `;
+  const extraEl = form.querySelector('#cyc-extra');
+  const rhythmSel = form.querySelector('#cyc-new-rhythm');
+  rhythmSel.addEventListener('change', () => {
+    const r = rhythmSel.value;
+    _cycFWD.clear(); _cycFMD.clear();
+    if (r === 'weekdays') {
+      extraEl.style.display = '';
+      extraEl.innerHTML = `<div class="cyc-extra-label">Dni tygodnia</div><div class="cyc-day-row">${
+        WEEKDAY_ORDER.map(d => `<button type="button" class="cyc-day-btn" data-d="${d}" onclick="toggleCycWeekday(${d})">${WEEKDAY_ABBR[d]}</button>`).join('')
+      }</div>`;
+    } else if (r === 'monthdays') {
+      extraEl.style.display = '';
+      extraEl.innerHTML = `<div class="cyc-extra-label">Dni miesiąca</div><div class="cyc-mday-grid">${
+        Array.from({length:31},(_,i)=>i+1).map(d => `<button type="button" class="cyc-mday-btn" data-d="${d}" onclick="toggleCycMonthday(${d})">${d}</button>`).join('')
+      }</div>`;
+    } else {
+      extraEl.style.display = 'none';
+      extraEl.innerHTML = '';
+    }
+  });
+  form.querySelector('#cyc-new-text').addEventListener('keydown', e => {
+    if (e.key === 'Enter') addCyclicTask();
+  });
+  container.appendChild(form);
+
+  // ── Sort items by status: overdue → soon → ok, then by diff asc ──
+  const sorted = [...items].sort((a, b) => {
+    const sa = cycStatus(a), sb = cycStatus(b);
+    const order = { 'cyc-overdue': 0, 'cyc-soon': 1, 'cyc-ok': 2 };
+    if (order[sa.cls] !== order[sb.cls]) return order[sa.cls] - order[sb.cls];
+    const da = sa.diff ?? 9999, db = sb.diff ?? 9999;
+    return da - db;
+  });
+
+  if (!sorted.length) {
+    const empty = document.createElement('div');
+    empty.style.cssText = 'text-align:center;color:var(--muted);padding:40px;font-size:14px';
+    empty.textContent = 'Brak zadań cyklicznych. Dodaj pierwsze powyżej.';
+    container.appendChild(empty);
+  }
+
+  // Group by status
+  const groups = [
+    { key: 'cyc-overdue', label: '🔴 Zaległe'       },
+    { key: 'cyc-soon',    label: '🟡 Zbliżające się' },
+    { key: 'cyc-ok',      label: '✅ OK'             },
+  ];
+  groups.forEach(({ key, label }) => {
+    const group = sorted.filter(i => cycStatus(i).cls === key);
+    if (!group.length) return;
+    const hdr = document.createElement('div');
+    hdr.className = 'cyc-section-hdr';
+    hdr.textContent = label;
+    container.appendChild(hdr);
+    group.forEach(item => container.appendChild(makeCycItem(item)));
+  });
+
+  wrap.appendChild(container);
+
+  // Update progress bar: cyc-ok = "done"
+  const okCount  = sorted.filter(i => cycStatus(i).cls === 'cyc-ok').length;
+  const total    = sorted.length;
+  const pct      = total > 0 ? Math.round(okCount / total * 100) : 0;
+  const pctEl = document.getElementById('pct');
+  const barEl = document.getElementById('bar');
+  if (pctEl) pctEl.textContent = pct + '%';
+  if (barEl) barEl.style.width = pct + '%';
+  const doneEl = document.getElementById('s-done');
+  if (doneEl) doneEl.textContent = okCount;
+}
+
+function makeCycItem(item) {
+  const { rhythm, last_done, userNote, days_of_week, days_of_month } = parseRecurrence(item);
+  const rLabel = cycRhythmLabel(rhythm, days_of_week, days_of_month);
+  const { cls, label } = cycStatus(item);
+  const nextDue = computeNextDue(last_done, rhythm, { days_of_week, days_of_month });
+  const nextStr = nextDue ? nextDue.toLocaleDateString('pl-PL', { day:'numeric', month:'short', year:'numeric' }) : '—';
+  const lastStr = last_done ? new Date(last_done).toLocaleDateString('pl-PL', { day:'numeric', month:'short', year:'numeric' }) : 'Nigdy';
+
+  const el = document.createElement('div');
+  el.className = `cyc-item ${cls}`;
+  el.innerHTML = `
+    <div style="flex:1;min-width:0">
+      <div class="cyc-text">${escHtml(item.text)}</div>
+      <div class="cyc-meta">Ostatnio: ${lastStr} · Następne: ${nextStr}${userNote ? ' · ' + escHtml(userNote) : ''}</div>
+    </div>
+    <span class="cyc-rhythm">${rLabel}</span>
+    <span class="cyc-badge ${cls}">${label}</span>
+    <button class="cyc-done-btn" title="Oznacz jako zrobione dziś">✓ Zrobione</button>
+    <button class="cyc-del-btn" title="Usuń">✕</button>
+  `;
+
+  el.querySelector('.cyc-done-btn').addEventListener('click', () => doneCyclicTask(item.id));
+  el.querySelector('.cyc-del-btn').addEventListener('click', () => deleteCyclicTask(item.id));
+  return el;
+}
+
+function addCyclicTask() {
+  const text = document.getElementById('cyc-new-text')?.value.trim();
+  if (!text) return;
+  const rhythm = document.getElementById('cyc-new-rhythm')?.value || 'yearly';
+  const lastVal = document.getElementById('cyc-new-lastdone')?.value || null;
+  if (rhythm === 'weekdays' && !_cycFWD.size) { showToast('⚠ Wybierz przynajmniej jeden dzień tygodnia'); return; }
+  if (rhythm === 'monthdays' && !_cycFMD.size) { showToast('⚠ Wybierz przynajmniej jeden dzień miesiąca'); return; }
+  const extra = {};
+  if (rhythm === 'weekdays')  extra.days_of_week  = [..._cycFWD].sort((a,b) => a-b);
+  if (rhythm === 'monthdays') extra.days_of_month = [..._cycFMD].sort((a,b) => a-b);
+  const newItem = {
+    id: 'cyc_' + Date.now(),
+    sec: 'todo', quad: null, checked: false, priority: false, pawel: false,
+    text,
+    note: buildRecurrence('', rhythm, lastVal, extra),
+    inProgress: false, cat: null,
+  };
+  items.push(newItem);
+  renderCykliczne();
+  autoSave();
+  showToast('✓ Dodano zadanie cykliczne');
+}
+
+function doneCyclicTask(id) {
+  const item = items.find(i => i.id === id);
+  if (!item) return;
+  const { userNote, rhythm, days_of_week, days_of_month } = parseRecurrence(item);
+  const today = new Date().toISOString().slice(0, 10);
+  const extra = {};
+  if (rhythm === 'weekdays')  extra.days_of_week  = days_of_week;
+  if (rhythm === 'monthdays') extra.days_of_month = days_of_month;
+  item.note = buildRecurrence(userNote, rhythm, today, extra);
+  renderCykliczne();
+  autoSave();
+  const nextDue = computeNextDue(today, rhythm, { days_of_week, days_of_month });
+  const nextStr = nextDue ? nextDue.toLocaleDateString('pl-PL', { day:'numeric', month:'short' }) : '?';
+  showToast(`✓ Zrobione! Następne: ${nextStr}`);
+}
+
+function deleteCyclicTask(id) {
+  if (!confirm('Usunąć to zadanie cykliczne?')) return;
+  items = items.filter(i => i.id !== id);
+  renderCykliczne();
+  autoSave();
+  sbDelete(id);
+}
+
+const GENERAL_PROJ_ORDER = ['prywatne','dp','vns','szpilki','fundacja','projekty','spotkania','cykliczne','vibecoding','telegram'];
+const GENERAL_PROJ_COLLAPSED = {};
+
+function renderGeneral() {
+  const wrap = document.getElementById('sections-wrap');
+  wrap.innerHTML = '';
+  const PROJ_LABELS = Object.fromEntries(Object.entries(PROJECTS).map(([k,v]) => [k, v.label]));
+  const PROJ_COLORS = { prywatne:'var(--cyan)', dp:'var(--purple)', vns:'var(--orange)', szpilki:'var(--pink,#e879b0)', fundacja:'#e8c547', projekty:'var(--blue)', spotkania:'var(--purple)', cykliczne:'var(--green)', vibecoding:'var(--blue)', telegram:'var(--blue)' };
+
+  // Group items by _project
+  const groups = {};
+  items.forEach(i => {
+    const p = i._project || i.cat || 'inne';
+    if (!groups[p]) groups[p] = [];
+    groups[p].push(i);
+  });
+
+  const order = [...GENERAL_PROJ_ORDER, ...Object.keys(groups).filter(k => !GENERAL_PROJ_ORDER.includes(k))];
+
+  order.forEach(projKey => {
+    const projItems = groups[projKey];
+    if (!projItems || !projItems.length) return;
+    const todoItems = projItems.filter(i => i.sec !== 'done' && !i.checked && !parseParent(i));
+    const doneItems = projItems.filter(i => (i.sec === 'done' || i.checked) && !parseParent(i));
+    const totalUnchecked = projItems.filter(i => !i.checked && !parseParent(i)).length;
+    if (!projItems.length) return;
+
+    const collapsed = GENERAL_PROJ_COLLAPSED[projKey] || false;
+    const color = PROJ_COLORS[projKey] || 'var(--border)';
+    const label = PROJ_LABELS[projKey] || projKey;
+
+    const grp = document.createElement('div');
+    grp.className = 'proj-group' + (collapsed ? ' pg-collapsed' : '');
+    grp.id = 'pg-' + projKey;
+    grp.innerHTML = `
+      <div class="proj-group-header" style="border-left:3px solid ${color}" onclick="toggleProjGroup('${projKey}')">
+        <span>${label}</span>
+        <span class="pg-count">${totalUnchecked} do zrobienia</span>
+        <span class="pg-chev">▼</span>
+      </div>
+      <div class="proj-group-body" id="pgb-${projKey}"></div>`;
+    wrap.appendChild(grp);
+
+    if (!collapsed) {
+      const body = grp.querySelector('.proj-group-body');
+      // Todo sub-section
+      if (todoItems.length) {
+        const sub = document.createElement('div');
+        sub.className = 'pg-sub';
+        const subHdr = document.createElement('div');
+        subHdr.className = 'pg-sub-header';
+        subHdr.innerHTML = `📋 Do zrobienia <span class="pg-sub-count">${todoItems.length}</span>`;
+        const subItems = document.createElement('div');
+        subItems.className = 'pg-sub-items';
+        const sorted = [...todoItems].sort((a,b) => (a.priority?0:1)-(b.priority?0:1));
+        sorted.forEach((it, idx) => subItems.appendChild(makeItem(it, idx+1)));
+        sub.appendChild(subHdr);
+        sub.appendChild(subItems);
+        body.appendChild(sub);
+      }
+      // Done sub-section (collapsed by default)
+      if (doneItems.length) {
+        const doneKey = projKey + '-done';
+        const doneCollapsed = GENERAL_PROJ_COLLAPSED[doneKey] !== false; // default collapsed
+        const sub = document.createElement('div');
+        sub.className = 'pg-sub' + (doneCollapsed ? ' pg-sub-collapsed' : '');
+        sub.id = 'pgs-' + doneKey;
+        const subHdr = document.createElement('div');
+        subHdr.className = 'pg-sub-header';
+        subHdr.innerHTML = `✓ Zrobione <span class="pg-sub-count">${doneItems.length}</span>`;
+        subHdr.onclick = () => {
+          GENERAL_PROJ_COLLAPSED[doneKey] = !sub.classList.toggle('pg-sub-collapsed');
+        };
+        const subItems = document.createElement('div');
+        subItems.className = 'pg-sub-items';
+        doneItems.forEach((it, idx) => subItems.appendChild(makeItem(it, idx+1)));
+        sub.appendChild(subHdr);
+        sub.appendChild(subItems);
+        body.appendChild(sub);
+      }
+    }
+  });
+  updateStats();
+}
+
+function toggleProjGroup(key) {
+  GENERAL_PROJ_COLLAPSED[key] = !GENERAL_PROJ_COLLAPSED[key];
+  const grp = document.getElementById('pg-' + key);
+  if (grp) grp.classList.toggle('pg-collapsed');
+  const body = document.getElementById('pgb-' + key);
+  if (body) body.style.display = GENERAL_PROJ_COLLAPSED[key] ? 'none' : '';
+}
+
 function render() {
   if (activeProject === 'projekty') { renderProjectsView(); return; }
   if (activeProject === 'spotkania') { renderSpotkania(); return; }
+  if (activeProject === 'cykliczne') { renderCykliczne(); return; }
 
   renderWeekView();
 
@@ -1544,22 +2261,51 @@ function render() {
   wrap.innerHTML = '';
 
   // ── Overdue block ──────────────────────────────────────────────────────────
-  const overdue = items.filter(i => !i.checked && (() => { const dt = getItemDate(i); return dt && dt < TODAY; })());
+  const isOverdueFn = i => !i.checked && (() => { const dt = getItemDate(i); return dt && dt < TODAY; })();
+  const overdueAll = items.filter(isOverdueFn);
+  // Separate roots and children
+  const overdueRoots    = overdueAll.filter(i => !parseParent(i));
+  const overdueChildren = overdueAll.filter(i => parseParent(i));
+  // For overdue children: de-dup parents
+  const shownParentIds = new Set(overdueRoots.map(i => i.id));
+  const childGroups = []; // {parent, children[]}
+  overdueChildren.forEach(ch => {
+    const pid = parseParent(ch);
+    if (!pid) return;
+    let g = childGroups.find(g => g.parent?.id === pid);
+    if (!g) {
+      const par = items.find(i => i.id === pid);
+      if (!par || shownParentIds.has(pid)) return; // parent itself is overdue - skip
+      g = { parent: par, children: [] };
+      childGroups.push(g);
+    }
+    g.children.push(ch);
+  });
+  const overdue = overdueRoots; // roots count for display
+  const totalOverdue = overdueRoots.length + overdueChildren.length;
   const makeOverdueBlock = () => {
     const od = document.createElement('div');
     od.className = 'section overdue-block';
-    const hasItems = overdue.length > 0;
+    const hasItems = totalOverdue > 0;
     od.style.cssText = hasItems
       ? 'border-color:rgba(248,81,73,.5);background:rgba(248,81,73,.06)'
       : 'border-color:rgba(248,81,73,.2);opacity:.5';
     od.innerHTML = `<div class="sec-header" style="color:var(--red)">
       <span class="sec-chevron" style="${hasItems?'':'transform:rotate(-90deg)'}">▾</span>
       <span class="sec-title">${hasItems ? '🔴' : '✅'} Przeterminowane</span>
-      ${hasItems ? `<span class="sec-count">${overdue.length}</span>` : ''}
+      ${hasItems ? `<span class="sec-count">${totalOverdue}</span>` : ''}
     </div><div class="sec-body" style="${hasItems?'':'display:none'}" id="od-body"></div>`;
     if (hasItems) {
       const body = od.querySelector('#od-body');
-      overdue.forEach((item, idx) => body.appendChild(makeItem(item, idx + 1)));
+      overdueRoots.forEach((item, idx) => body.appendChild(makeItem(item, idx + 1)));
+      // Show overdue children with parent context
+      childGroups.forEach(({ parent, children }) => {
+        const ctx = document.createElement('div');
+        ctx.className = 'overdue-parent-ctx';
+        ctx.textContent = '↳ ' + parent.text.slice(0, 60);
+        body.appendChild(ctx);
+        [...children].sort((a, b) => (a.checked ? 1 : 0) - (b.checked ? 1 : 0)).forEach((ch, idx) => body.appendChild(makeItem(ch, idx + 1, true)));
+      });
     }
     od.querySelector('.sec-header').addEventListener('click', () => {
       const chev = od.querySelector('.sec-chevron');
@@ -1570,7 +2316,7 @@ function render() {
     });
     return od;
   };
-  if (overdue.length) wrap.insertBefore(makeOverdueBlock(), wrap.firstChild);
+  if (totalOverdue) wrap.insertBefore(makeOverdueBlock(), wrap.firstChild);
   else wrap._overdueBlock = makeOverdueBlock(); // append at end after sections render
   // ──────────────────────────────────────────────────────────────────────────
 
@@ -1585,7 +2331,7 @@ function render() {
   }
 
   sections.forEach(sec => {
-    const secItems = items.filter(i => i.sec === sec.id);
+    const secItems = items.filter(i => i.sec === sec.id && !parseParent(i));
     const div = document.createElement('div');
     div.className = 'section' + (sec.collapsed ? ' collapsed' : '');
     div.id = 'sec-' + sec.id;
@@ -1631,7 +2377,7 @@ function renderMatrix(body) {
   grid.className = 'matrix';
 
   QUADS.forEach(q => {
-    const raw = items.filter(i => i.sec === 'todo' && i.quad === q.id && !i.checked);
+    const raw = items.filter(i => i.sec === 'todo' && i.quad === q.id && !i.checked && !parseParent(i));
     const filtered = applySearch(applyFilter(raw)).sort((a, b) => {
       if (a.priority !== b.priority) return a.priority ? -1 : 1;
       const da = getItemDate(a), db = getItemDate(b);
@@ -1664,6 +2410,44 @@ function renderMatrix(body) {
       const qBody = qEl.querySelector('.q-body');
       if (filtered.length === 0) {
         qBody.innerHTML = `<div class="empty-zone">${activeFilter !== 'all' ? 'Brak dla wybranego filtru' : 'Przeciągnij tutaj'}</div>`;
+      } else if (activeProject === 'general') {
+        // Group by project in Wszystkie view
+        const PROJ_LABELS = Object.fromEntries(Object.entries(PROJECTS).map(([k,v]) => [k, v.label]));
+        const PROJ_COLORS_RGB = {
+          prywatne:   '248,81,73',
+          dp:         '88,166,255',
+          vns:        '230,126,34',
+          telegram:   '0,188,212',
+          szpilki:    '163,113,247',
+          vibecoding: '163,113,247',
+          fundacja:   '232,197,71',
+          cykliczne:  '57,208,200',
+          spotkania:  '188,140,255',
+        };
+        const byProj = {};
+        filtered.forEach(i => { const p = i._project || i.cat || 'inne'; (byProj[p] = byProj[p]||[]).push(i); });
+        const projOrder = [...GENERAL_PROJ_ORDER, ...Object.keys(byProj).filter(k => !GENERAL_PROJ_ORDER.includes(k))];
+        projOrder.forEach(projKey => {
+          const projItems = byProj[projKey];
+          if (!projItems || !projItems.length) return;
+          const pgKey = q.id + '-' + projKey;
+          const pgCollapsed = GENERAL_PROJ_COLLAPSED[pgKey] || false;
+          const rgb = PROJ_COLORS_RGB[projKey] || '139,148,158';
+          const pg = document.createElement('div');
+          pg.className = 'pg-sub pg-sub-proj' + (pgCollapsed ? ' pg-sub-collapsed' : '');
+          pg.id = 'pgs-' + pgKey;
+          const hdr = document.createElement('div');
+          hdr.className = 'pg-sub-header';
+          hdr.style.cssText = `--pc:rgb(${rgb});--pcRGB:${rgb}`;
+          hdr.innerHTML = `${PROJ_LABELS[projKey]||projKey} <span class="pg-sub-count">${projItems.length}</span>`;
+          hdr.onclick = () => { GENERAL_PROJ_COLLAPSED[pgKey] = pg.classList.toggle('pg-sub-collapsed'); };
+          const subItems = document.createElement('div');
+          subItems.className = 'pg-sub-items';
+          projItems.forEach((item, idx) => subItems.appendChild(makeItem(item, idx+1)));
+          pg.appendChild(hdr);
+          pg.appendChild(subItems);
+          qBody.appendChild(pg);
+        });
       } else {
         filtered.forEach((item, idx) => qBody.appendChild(makeItem(item, idx+1)));
       }
@@ -1698,6 +2482,48 @@ function renderDone(body) {
   const allDone = items.filter(i => i.checked);
   if (allDone.length === 0) {
     body.innerHTML = `<div class="empty-zone">Nic tu jeszcze nie trafiło</div>`;
+    return;
+  }
+
+  // In general view: group by project instead of DONE_SUBS
+  if (activeProject === 'general') {
+    const PROJ_LABELS = Object.fromEntries(Object.entries(PROJECTS).map(([k,v]) => [k, v.label]));
+    const PROJ_COLORS_RGB = { prywatne:'248,81,73', dp:'88,166,255', vns:'230,126,34', telegram:'0,188,212', szpilki:'163,113,247', vibecoding:'163,113,247', fundacja:'232,197,71', cykliczne:'57,208,200', spotkania:'188,140,255' };
+    const byProj = {};
+    allDone.filter(i => !parseParent(i)).forEach(i => { const p = i._project || i.cat || 'inne'; (byProj[p] = byProj[p]||[]).push(i); });
+    const projOrder = [...GENERAL_PROJ_ORDER, ...Object.keys(byProj).filter(k => !GENERAL_PROJ_ORDER.includes(k))];
+    projOrder.forEach(projKey => {
+      const projItems = byProj[projKey];
+      if (!projItems || !projItems.length) return;
+      const pgKey = 'done-' + projKey;
+      const pgCollapsed = GENERAL_PROJ_COLLAPSED[pgKey] !== false; // collapsed by default
+      const rgb = PROJ_COLORS_RGB[projKey] || '139,148,158';
+      const sorted = [...projItems].sort((a,b) => {
+        if (!a.completedAt && !b.completedAt) return 0;
+        if (!a.completedAt) return 1;
+        if (!b.completedAt) return -1;
+        return new Date(b.completedAt) - new Date(a.completedAt);
+      });
+      const pg = document.createElement('div');
+      pg.className = 'pg-sub pg-sub-proj' + (pgCollapsed ? ' pg-sub-collapsed' : '');
+      pg.id = 'pgs-' + pgKey;
+      const hdr = document.createElement('div');
+      hdr.className = 'pg-sub-header';
+      hdr.style.cssText = `--pc:rgb(${rgb});--pcRGB:${rgb}`;
+      hdr.innerHTML = `${PROJ_LABELS[projKey]||projKey} <span class="pg-sub-count">${sorted.length}</span>`;
+      hdr.onclick = () => { GENERAL_PROJ_COLLAPSED[pgKey] = pg.classList.toggle('pg-sub-collapsed'); };
+      const subItems = document.createElement('div');
+      subItems.className = 'pg-sub-items';
+      sorted.forEach((item, idx) => {
+        const el = makeItem(item, idx+1);
+        const ts = fmtTs(item.completedAt);
+        if (ts) { const span = document.createElement('span'); span.className = 'completed-time'; span.textContent = ts; el.querySelector('.item-text').appendChild(span); }
+        subItems.appendChild(el);
+      });
+      pg.appendChild(hdr);
+      pg.appendChild(subItems);
+      body.appendChild(pg);
+    });
     return;
   }
 
@@ -1773,7 +2599,7 @@ function setupDropZone(el, secId, quadId, highlightEl) {
 }
 
 // ── Make item element ──
-function makeItem(item, num) {
+function makeItem(item, num, isChildView = false) {
   const el = document.createElement('div');
   el.dataset.id = item.id;
 
@@ -1800,7 +2626,7 @@ function makeItem(item, num) {
             <option value="q3" ${curQuad==='q3'?'selected':''}>🟠 Pilne + Nieważne</option>
             <option value="q4" ${curQuad==='q4'?'selected':''}>⚪ Niepilne + Nieważne</option>
           </select>
-          <input class="add-date" id="eid-${item.id}" type="date" title="Dołącz datę do tekstu">
+          <input class="add-date" id="eid-${item.id}" type="date" title="Dołącz datę do tekstu" onclick="try{this.showPicker()}catch(e){}">
           <label class="toggle-pawel ${item.pawel?'active':''}" id="eip-${item.id}" onclick="toggleEditPawel('${item.id}')">
             <input type="checkbox" ${item.pawel?'checked':''}> [P] Paweł
           </label>
@@ -1821,17 +2647,28 @@ function makeItem(item, num) {
 
   // ── NORMAL MODE ──
   const noteOpen = openNotes.has(item.id);
-  const hasNote  = !!(item.note && item.note.trim());
+  const { notePart, subtasks } = parseItemNote(item);
+  const noteDisplay = notePart.replace(/📅\s*\d{1,2}\.\d{2}(?:\.\d{2,4})?\s*/g, '').trim();
+  const hasNote = !!(noteDisplay);
+  const hasSubtasks = subtasks.length > 0;
+  const doneSubtasks = subtasks.filter(s => s.checked).length;
+  const children = getChildren(item.id);
+  const hasChildren = children.length > 0;
+  const doneChildren = children.filter(c => c.checked).length;
+  const isChild = isChildView || !!parseParent(item);
 
-  const catLabels = { prywatne:'Prywatne', dp:'DOP', vns:'VNS', telegram:'Telegram', szpilki:'Szpilki', vibecoding:'Vibe' };
+  const catLabels = { prywatne:'Prywatne', dp:'DOP', vns:'VNS', telegram:'Telegram', szpilki:'Szpilki', vibecoding:'Vibe', fundacja:'Fundacja', cykliczne:'Cykliczne', spotkania:'Spotkania' };
   el.className = 'item'
     + (item.checked    ? ' is-done'       : '')
     + (item.inProgress ? ' is-inprogress' : '')
     + (item.priority   ? ' is-priority'   : '')
-    + (selectedIds.has(item.id) ? ' selected' : '');
+    + (selectedIds.has(item.id) ? ' selected' : '')
+    + (noteOpen        ? ' is-expanded'   : '')
+    + (isChild         ? ' is-child'      : '');
   el.draggable = true;
 
   const cbCls = item.checked ? 'checked' : (item.inProgress ? 'inprogress' : '');
+  const stBadge = hasSubtasks ? `<span class="st-badge-inline" title="Podzadania: ${doneSubtasks}/${subtasks.length}">▸ ${doneSubtasks}/${subtasks.length}</span>` : '';
   el.innerHTML = `
     <div class="sel-cb" onclick="event.stopPropagation();toggleSelect('${item.id}')" title="Zaznacz"></div>
     <span class="num">${num}.</span>
@@ -1841,40 +2678,117 @@ function makeItem(item, num) {
             title="${item.priority?'Usuń priorytet':'Ustaw priorytet'}">★</button>
     <div class="cb ${cbCls}" data-cbid="${item.id}" title="Kliknij: ☐→✓"></div>
     <div class="item-text" ondblclick="event.stopPropagation();openEdit('${item.id}')">
-      ${escHtml(item.text)}${(() => { const ds = getItemDateStr(item); if (!ds) return ''; const dt = parseDate(ds); const diffDays = dt ? Math.round((dt - TODAY)/86400000) : null; let cls = 'date-tag'; if (dt && dt < TODAY) cls += ' overdue'; else if (dt && diffDays === 0) cls += ' today'; else if (dt && diffDays <= 2) cls += ' today'; else if (dt && diffDays <= 7) cls += ' soon'; else if (dt) cls += ' future'; const label = diffDays===0?' dziś':diffDays===1?' jutro':diffDays>0?` za ${diffDays}d`:diffDays!==null?` ${Math.abs(diffDays)}d temu`:''; return ` <span class="${cls}" style="cursor:pointer" onclick="event.stopPropagation();showDateMenu('${item.id}',event)" title="Zmień datę">📅 ${ds}${label}</span>`; })()}
-      ${(item.cat || activeProject !== 'general') ? `<span class="badge-cat cat-${item.cat||activeProject}" onclick="event.stopPropagation();showMoveMenu('${item.id}',event)" title="Zmień projekt">${catLabels[item.cat||activeProject]||item.cat||activeProject}</span>` : ''}
+      ${escHtml(item.text)}${stBadge}${hasChildren ? `<span class="st-badge-inline" title="Podzadania: ${doneChildren}/${children.length}">▸ ${doneChildren}/${children.length}</span>` : ''}${(() => { const ds = getItemDateStr(item); if (!ds) return ''; const dt = parseDate(ds); const diffDays = dt ? Math.round((dt - TODAY)/86400000) : null; let cls = 'date-tag'; if (dt && dt < TODAY) cls += ' overdue'; else if (dt && diffDays === 0) cls += ' today'; else if (dt && diffDays <= 2) cls += ' today'; else if (dt && diffDays <= 7) cls += ' soon'; else if (dt) cls += ' future'; const label = diffDays===0?' dziś':diffDays===1?' jutro':diffDays>0?` za ${diffDays}d`:diffDays!==null?` ${Math.abs(diffDays)}d temu`:''; return ` <span class="${cls}" style="cursor:pointer" onclick="event.stopPropagation();showDateMenu('${item.id}',event)" title="Zmień datę">📅 ${ds}${label}</span>`; })()}
+      ${(() => { const projKey = item.cat || (activeProject !== 'general' ? activeProject : null) || item._project; return projKey ? `<span class="badge-cat cat-${projKey}" onclick="event.stopPropagation();showMoveMenu('${item.id}',event)" title="Zmień projekt">${catLabels[projKey]||projKey}</span>` : ''; })()}
     </div>
     <button class="btn-progress-item ${item.inProgress?'is-active':''}" onclick="event.stopPropagation();toggleInProgress('${item.id}')" title="${item.inProgress?'Usuń W trakcie':'Oznacz jako W trakcie'}">⏳</button>
-    <button class="btn-note-item ${hasNote?'has-note':''}" onclick="event.stopPropagation();toggleNote('${item.id}')" title="${noteOpen?'Schowaj notatkę':'Pokaż notatkę'}">📝</button>
+    <button class="btn-note-item ${(hasNote||hasSubtasks||hasChildren)?'has-note':''}" onclick="event.stopPropagation();toggleNote('${item.id}')" title="${noteOpen?'Schowaj':'Rozwiń'}">📝</button>
     <button class="btn-date-item"   onclick="event.stopPropagation();showDateMenu('${item.id}',event)" title="Dodaj datę">📅</button>
-    <button class="btn-edit-item"   onclick="event.stopPropagation();openEdit('${item.id}')"   title="Edytuj">✏</button>
-    <button class="btn-delete-item" onclick="event.stopPropagation();deleteItem('${item.id}')" title="Usuń">✕</button>
+    ${isChild ? `<button class="btn-promote" onclick="event.stopPropagation();promoteItem('${item.id}')" title="Przenieś na główny poziom">↑ wyżej</button>` : ''}
+    <button class="btn-edit-item"      onclick="event.stopPropagation();openEdit('${item.id}')"      title="Edytuj">✏</button>
+    <button class="btn-delete-item"   onclick="event.stopPropagation();deleteItem('${item.id}')"   title="Usuń">✕</button>
+    <button class="btn-edit-item"     onclick="event.stopPropagation();duplicateItem('${item.id}')" title="Duplikuj" style="opacity:.7">⧉</button>
     <button class="btn-more-item"   onclick="event.stopPropagation();showItemSheet('${item.id}')" title="Więcej">⋯</button>
   `;
 
-  // Note area row
+  // Expand panel (subtasks + optional note) — visible when noteOpen
   if (noteOpen) {
-    const noteRow = document.createElement('div');
-    noteRow.className = 'note-row';
-    const ta = document.createElement('textarea');
-    ta.className = 'note-area';
-    ta.placeholder = 'Notatka do zadania…';
-    ta.value = item.note || '';
-    ta.rows = 2;
-    ta.addEventListener('input', e => {
-      item.note = e.target.value;
-      // update btn-note indicator without full re-render
-      const btn = el.querySelector('.btn-note-item');
-      if (btn) btn.classList.toggle('has-note', !!(e.target.value.trim()));
-      autoSave();
+    const detail = document.createElement('div');
+    detail.className = 'item-detail';
+
+    // Note textarea — only when explicitly opened
+    const noteTextOpen = openNoteTexts.has(item.id);
+    const noteToggleBtn = document.createElement('button');
+    noteToggleBtn.className = 'subtask-add-btn';
+    noteToggleBtn.style.cssText = 'align-self:flex-start;margin-bottom:4px;font-size:11px';
+    noteToggleBtn.textContent = noteTextOpen ? '✕ Schowaj notatkę' : (hasNote ? '📝 Edytuj notatkę' : '📝 Dodaj notatkę');
+    noteToggleBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      if (openNoteTexts.has(item.id)) openNoteTexts.delete(item.id);
+      else openNoteTexts.add(item.id);
+      render();
     });
-    ta.addEventListener('click', e => e.stopPropagation());
-    ta.addEventListener('keydown', e => {
-      if (e.key === 'Escape') { openNotes.delete(item.id); render(); }
+    detail.appendChild(noteToggleBtn);
+
+    if (noteTextOpen) {
+      const ta = document.createElement('textarea');
+      ta.className = 'note-area';
+      ta.placeholder = 'Notatka do zadania…';
+      ta.value = noteDisplay;
+      ta.rows = 2;
+      ta.setAttribute('data-noteid', item.id);
+      ta.addEventListener('input', e => {
+        const { subtasks: st } = parseItemNote(item);
+        const datePrefix = notePart.match(/^📅\s*[\d.]+/) ? notePart.match(/^📅\s*[\d.]+/)[0] : null;
+        const newNote = datePrefix ? (datePrefix + (e.target.value ? '\n' + e.target.value : '')) : e.target.value;
+        item.note = buildItemNote(newNote, st);
+        autoSave();
+      });
+      ta.addEventListener('click', e => e.stopPropagation());
+      ta.addEventListener('keydown', e => {
+        if (e.key === 'Escape') { openNoteTexts.delete(item.id); openNotes.delete(item.id); render(); }
+      });
+      detail.appendChild(ta);
+    }
+
+    // ── Children (real task items) ──
+    if (hasChildren) {
+      const hdr = document.createElement('div');
+      hdr.className = 'subtask-header';
+      const pct = children.length ? Math.round(doneChildren / children.length * 100) : 0;
+      hdr.innerHTML = `<span>Podzadania</span><span class="subtask-count">${doneChildren}/${children.length}</span><div class="subtask-progress-bar"><div class="subtask-progress-fill" style="width:${pct}%"></div></div>`;
+      detail.appendChild(hdr);
+      const childWrap = document.createElement('div');
+      childWrap.className = 'item-children';
+      const sortedChildren = [...children].sort((a, b) => (a.checked ? 1 : 0) - (b.checked ? 1 : 0));
+      sortedChildren.forEach((ch, idx) => childWrap.appendChild(makeItem(ch, idx + 1, true)));
+      detail.appendChild(childWrap);
+    }
+
+    // ── Legacy embedded subtasks (will be migrated away) ──
+    if (hasSubtasks) {
+      const stSection = document.createElement('div');
+      stSection.className = 'subtask-section';
+      subtasks.forEach((st, idx) => {
+        const row = document.createElement('div');
+        row.className = 'subtask-item';
+        row.innerHTML = `
+          <div class="st-cb ${st.checked?'st-done':''}" title="${st.checked?'Odznacz':'Zaznacz'}"></div>
+          <span class="st-text ${st.checked?'st-done':''}">${escHtml(st.text)}</span>
+          <button class="st-del" title="Usuń podzadanie">✕</button>
+        `;
+        row.querySelector('.st-cb').addEventListener('click', e => { e.stopPropagation(); toggleSubtask(item.id, idx); });
+        row.querySelector('.st-del').addEventListener('click', e => { e.stopPropagation(); deleteSubtask(item.id, idx); });
+        stSection.appendChild(row);
+      });
+      detail.appendChild(stSection);
+    }
+
+    // ── Add subtask input ──
+    const addRow = document.createElement('div');
+    addRow.className = 'subtask-add-row';
+    const addInput = document.createElement('input');
+    addInput.className = 'subtask-add-input';
+    addInput.placeholder = '+ dodaj podzadanie…';
+    addInput.addEventListener('click', e => e.stopPropagation());
+    addInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && addInput.value.trim()) {
+        e.preventDefault();
+        addSubtask(item.id, addInput.value.trim());
+      }
     });
-    noteRow.appendChild(ta);
-    el.appendChild(noteRow);
-    setTimeout(() => ta.focus(), 20);
+    const addBtn = document.createElement('button');
+    addBtn.className = 'subtask-add-btn';
+    addBtn.textContent = '+ Podzadanie';
+    addBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      if (addInput.value.trim()) addSubtask(item.id, addInput.value.trim());
+    });
+    addRow.appendChild(addInput);
+    addRow.appendChild(addBtn);
+    detail.appendChild(addRow);
+
+    el.appendChild(detail);
   }
 
   el.querySelector('.cb').addEventListener('click', e => {
@@ -1884,21 +2798,7 @@ function makeItem(item, num) {
 
   el.querySelector('.item-text').addEventListener('click', e => {
     e.stopPropagation();
-    if (_pinnedItemEl && _pinnedItemEl !== el) {
-      _pinnedItemEl.classList.remove('item-pinned');
-    }
-    const pinned = el.classList.toggle('item-pinned');
-    _pinnedItemEl = pinned ? el : null;
-    if (pinned) {
-      const unpinOnClickOutside = ev => {
-        if (!el.contains(ev.target)) {
-          el.classList.remove('item-pinned');
-          if (_pinnedItemEl === el) _pinnedItemEl = null;
-          document.removeEventListener('click', unpinOnClickOutside);
-        }
-      };
-      setTimeout(() => document.addEventListener('click', unpinOnClickOutside), 0);
-    }
+    toggleNote(item.id);
   });
 
   el.addEventListener('dragstart', e => {
@@ -1910,7 +2810,7 @@ function makeItem(item, num) {
 
   el.addEventListener('dragend', () => {
     el.classList.remove('dragging');
-    document.querySelectorAll('.drag-over-top,.drag-over-bottom').forEach(x => x.classList.remove('drag-over-top','drag-over-bottom'));
+    document.querySelectorAll('.drag-over-top,.drag-over-bottom,.drag-over-subtask').forEach(x => x.classList.remove('drag-over-top','drag-over-bottom','drag-over-subtask'));
     document.querySelectorAll('.drag-target').forEach(x => x.classList.remove('drag-target'));
     dragState.id = null;
   });
@@ -1918,26 +2818,35 @@ function makeItem(item, num) {
   el.addEventListener('dragover', e => {
     e.preventDefault();
     if (!dragState.id || dragState.id === item.id) return;
-    const mid = el.getBoundingClientRect().top + el.getBoundingClientRect().height / 2;
-    document.querySelectorAll('.drag-over-top,.drag-over-bottom').forEach(x => x.classList.remove('drag-over-top','drag-over-bottom'));
-    el.classList.add(e.clientY < mid ? 'drag-over-top' : 'drag-over-bottom');
+    const rect = el.getBoundingClientRect();
+    const relY = e.clientY - rect.top;
+    const h = rect.height;
+    document.querySelectorAll('.drag-over-top,.drag-over-bottom,.drag-over-subtask').forEach(x => x.classList.remove('drag-over-top','drag-over-bottom','drag-over-subtask'));
+    if (relY < h * 0.25) el.classList.add('drag-over-top');
+    else if (relY > h * 0.75) el.classList.add('drag-over-bottom');
+    else el.classList.add('drag-over-subtask');
   });
 
   el.addEventListener('dragleave', e => {
-    if (!el.contains(e.relatedTarget)) el.classList.remove('drag-over-top','drag-over-bottom');
+    if (!el.contains(e.relatedTarget)) el.classList.remove('drag-over-top','drag-over-bottom','drag-over-subtask');
   });
 
   el.addEventListener('drop', e => {
     e.preventDefault();
     e.stopPropagation();
-    el.classList.remove('drag-over-top','drag-over-bottom');
+    const hadSubtask = el.classList.contains('drag-over-subtask');
+    el.classList.remove('drag-over-top','drag-over-bottom','drag-over-subtask');
     if (!dragState.id || dragState.id === item.id) return;
-    const after = e.clientY >= el.getBoundingClientRect().top + el.getBoundingClientRect().height / 2;
-    const secEl = el.closest('.section');
-    const secId = secEl ? secEl.id.replace('sec-','') : item.sec;
-    const qEl   = el.closest('.quadrant');
-    const qId   = qEl ? qEl.id.replace('quad-','') : null;
-    moveItem(dragState.id, secId, qId, item.id, after);
+    if (hadSubtask) {
+      dropAsSubtask(dragState.id, item.id);
+    } else {
+      const after = e.clientY >= el.getBoundingClientRect().top + el.getBoundingClientRect().height / 2;
+      const secEl = el.closest('.section');
+      const secId = secEl ? secEl.id.replace('sec-','') : item.sec;
+      const qEl   = el.closest('.quadrant');
+      const qId   = qEl ? qEl.id.replace('quad-','') : null;
+      moveItem(dragState.id, secId, qId, item.id, after);
+    }
   });
 
   return el;
@@ -1947,9 +2856,74 @@ function makeItem(item, num) {
 //  NOTE
 // ════════════════════════════════════════
 function toggleNote(id) {
-  if (openNotes.has(id)) openNotes.delete(id);
-  else openNotes.add(id);
+  if (openNotes.has(id)) {
+    openNotes.delete(id);
+    openNoteTexts.delete(id);
+  } else {
+    openNotes.add(id);
+  }
   render();
+}
+
+function addSubtask(parentId, text) {
+  if (!text) return;
+  const parent = items.find(i => i.id === parentId);
+  if (!parent) return;
+  pushHistory();
+  const childId = 'sub_' + Date.now();
+  items.push({
+    id: childId,
+    sec: parent.sec || 'todo', quad: parent.quad || null,
+    checked: false, inProgress: false, priority: false, pawel: false,
+    cat: parent.cat || null,
+    note: setParentInNote('', parentId),
+    text,
+  });
+  openNotes.add(parentId);
+  render(); autoSave();
+}
+
+function promoteItem(id) {
+  const item = items.find(i => i.id === id);
+  if (!item) return;
+  pushHistory();
+  item.note = setParentInNote(item.note, null);
+  render(); autoSave();
+  showToast('↑ Przeniesiono na główny poziom');
+}
+
+// Legacy: toggleSubtask/deleteSubtask still work for any remaining embedded subtasks
+function toggleSubtask(parentId, idx) {
+  const item = items.find(i => i.id === parentId);
+  if (!item) return;
+  const { notePart, subtasks } = parseItemNote(item);
+  if (subtasks[idx]) subtasks[idx].checked = !subtasks[idx].checked;
+  item.note = buildItemNote(notePart, subtasks);
+  render(); autoSave();
+}
+
+function deleteSubtask(parentId, idx) {
+  const item = items.find(i => i.id === parentId);
+  if (!item) return;
+  pushHistory();
+  const { notePart, subtasks } = parseItemNote(item);
+  subtasks.splice(idx, 1);
+  item.note = buildItemNote(notePart, subtasks);
+  render(); autoSave();
+}
+
+function dropAsSubtask(draggedId, targetId) {
+  const dragged = items.find(i => i.id === draggedId);
+  const target  = items.find(i => i.id === targetId);
+  if (!dragged || !target) return;
+  pushHistory();
+  // Set parent on dragged item (keep all its children too)
+  dragged.note = setParentInNote(dragged.note, targetId);
+  // Also move any children of dragged to be children of target
+  getChildren(draggedId).forEach(ch => { ch.note = setParentInNote(ch.note, targetId); });
+  openNotes.add(targetId);
+  render(); autoSave();
+  showToast('↳ Podzadanie dodane do: ' + target.text.slice(0, 40));
 }
 
 // ════════════════════════════════════════
@@ -2014,9 +2988,10 @@ function applyItemDate(id, dateStr) {
   const item = items.find(i => i.id === id);
   if (!item) return;
   pushHistory();
-  // zapisz/usuń datę w note (prefix 📅), NIE w tekście
-  const noteWithoutDate = (item.note || '').replace(/📅\s*\d{1,2}\.\d{2}(?:\.\d{2,4})?\s*/g, '').trim();
-  item.note = dateStr ? ('📅' + dateStr + (noteWithoutDate ? '\n' + noteWithoutDate : '')) : noteWithoutDate;
+  const { notePart, subtasks } = parseItemNote(item);
+  const notePureWithoutDate = notePart.replace(/📅\s*\d{1,2}\.\d{2}(?:\.\d{2,4})?\s*/g, '').trim();
+  const newNotePart = dateStr ? ('📅' + dateStr + (notePureWithoutDate ? '\n' + notePureWithoutDate : '')) : notePureWithoutDate;
+  item.note = buildItemNote(newNotePart, subtasks);
   if (dateStr) localStorage.setItem('lastItemDate', dateStr);
   render(); autoSave();
 }
@@ -2048,20 +3023,49 @@ function showMoveMenu(id, event) {
 async function moveTask(id, targetProject) {
   const item = items.find(i => i.id === id);
   if (!item) return;
+  pushHistory();
+  const children = getChildren(id);
+  const allIds = [id, ...children.map(c => c.id)];
   try {
-    await sb.from('tasks').update({ project: targetProject }).eq('id', id);
+    // Single API call for parent + all children; update cat = targetProject so badge reflects new project
+    await sb.from('tasks').update({ project: targetProject, cat: targetProject }).in('id', allIds);
   } catch(e) { console.warn('moveTask sb error', e); }
-  items = items.filter(i => i.id !== id);
+  // Update local items too
+  allIds.forEach(aid => {
+    const it = items.find(i => i.id === aid);
+    if (it) { it._project = targetProject; it.cat = targetProject; }
+  });
+  items = items.filter(i => !allIds.includes(i.id));
   render();
   saveAll();
   const label = PROJECTS[targetProject]?.label || targetProject;
-  showToast('Przeniesiono do ' + label);
+  const childInfo = children.length ? ` (+${children.length} podzadań)` : '';
+  showToast('Przeniesiono do ' + label + childInfo);
+}
+
+function duplicateItem(id) {
+  const src = items.find(i => i.id === id);
+  if (!src) return;
+  pushHistory();
+  const newId = crypto.randomUUID();
+  const copy = { ...src, id: newId, checked: false, inProgress: false, completedAt: null, _prevSec: null, _prevQuad: null };
+  const idx = items.findIndex(i => i.id === id);
+  items.splice(idx + 1, 0, copy);
+  const row = { id: newId, project: activeProject, sec: copy.sec, quad: copy.quad,
+    text: copy.text, checked: false, in_progress: false, priority: copy.priority,
+    pawel: copy.pawel, cat: copy.cat || null, note: copy.note || '', completed_at: null, prev_sec: null, prev_quad: null };
+  sb.table('tasks').insert(row).catch(e => console.warn(e));
+  render(); autoSave();
+  logAction('⧉', `Duplikat: ${copy.text.slice(0,55)}`);
+  showToast('⧉ Zduplikowano', false);
 }
 
 function deleteItem(id) {
   const item = items.find(i => i.id === id);
   pushHistory();
-  openNotes.delete(id);
+  openNotes.delete(id); openNoteTexts.delete(id);
+  // Promote children before deleting parent
+  getChildren(id).forEach(ch => { ch.note = setParentInNote(ch.note, null); });
   items = items.filter(i => i.id !== id);
   render(); autoSave();
   sbDelete(id);
@@ -2255,6 +3259,23 @@ function moveItem(srcId, targetSec, targetQuad, anchorId, insertAfter) {
   render(); autoSave();
 }
 
+function scrollToStat(type) {
+  let target = null;
+  if (type === 'q1' || type === 'q2') {
+    const secTodo = sections.find(s => s.id === 'todo');
+    if (secTodo && secTodo.collapsed) { secTodo.collapsed = false; render(); autoSave(); }
+    if (QUADS_COLLAPSED[type]) { QUADS_COLLAPSED[type] = false; render(); autoSave(); }
+    target = document.getElementById('quad-' + type);
+  } else if (type === 'done') {
+    const secDone = sections.find(s => s.id === 'done');
+    if (secDone && secDone.collapsed) { secDone.collapsed = false; render(); autoSave(); }
+    target = document.getElementById('sec-done');
+  } else if (type === 'inprogress') {
+    target = document.querySelector('.item.is-inprogress');
+  }
+  if (target) setTimeout(() => target.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+}
+
 function toggleSection(id, event) {
   if (event && event.target && event.target.closest('.sec-body')) return;
   const s = sections.find(x => x.id === id);
@@ -2342,7 +3363,9 @@ function autoSave() {
   saveTimer = setTimeout(() => {
     saveState(true);
     if (activeProject === 'general') {
-      CAT_PROJECTS.forEach(catKey => sbSave(items.filter(i => i.cat === catKey), catKey));
+      const byProj = {};
+      items.forEach(i => { const p = i._project || i.cat; if (p) { (byProj[p] = byProj[p]||[]).push(i); } });
+      Object.entries(byProj).forEach(([p, arr]) => sbSave(arr, p));
     } else if (activeProject !== 'projekty') {
       sbSave(items, activeProject);
     }
@@ -2369,6 +3392,10 @@ function loadState() {
         if (i.inProgress === undefined) i.inProgress = false;
         if (i.cat        === undefined) i.cat        = null;
       });
+      // Remove items that belong to a different CAT_PROJECT (stale mixed data)
+      if (!CAT_PROJECTS.includes(activeProject)) {
+        items = items.filter(i => !i.cat || i.cat === activeProject || !CAT_PROJECTS.includes(i.cat));
+      }
       // fix any duplicate t8 in stored data — rename old Stopki Gmail t8 to t10
       const t8s = items.filter(i => i.id === 't8');
       if (t8s.length > 1) {
@@ -2388,6 +3415,43 @@ function loadState() {
   loadUndoStack();
   loadLog();
   renderLog();
+  migrateEmbeddedSubtasks();
+}
+
+function migrateEmbeddedSubtasks() {
+  const MK = '_sub_mig_v2_' + activeProject;
+  if (localStorage.getItem(MK)) return;
+  const toAdd = [];
+  items.forEach(item => {
+    const STMARKER = '\n---subtasks---\n';
+    const idx = (item.note || '').indexOf(STMARKER);
+    if (idx === -1) return;
+    const notePart = item.note.slice(0, idx);
+    const afterST  = item.note.slice(idx + STMARKER.length);
+    // split off recurrence if present
+    const recM = afterST.indexOf('\n---recurrence---\n');
+    const subsJson  = recM === -1 ? afterST : afterST.slice(0, recM);
+    const recSuffix = recM === -1 ? '' : afterST.slice(recM);
+    let subs = [];
+    try { subs = JSON.parse(subsJson); } catch(e) { return; }
+    subs.forEach((st, i) => {
+      toAdd.push({
+        id: (st.id && !st.id.startsWith('st_')) ? st.id : ('mig_' + item.id + '_' + i + '_' + Date.now()),
+        sec: item.sec || 'todo', quad: item.quad || null,
+        checked: st.checked || false, inProgress: false, priority: false, pawel: false,
+        cat: item.cat || null,
+        note: setParentInNote('', item.id),
+        text: st.text,
+      });
+    });
+    item.note = notePart + recSuffix;
+  });
+  if (toAdd.length) {
+    items.push(...toAdd);
+    // BUG5 fix: nie wywołuj autoSave() w trakcie Supabase-sync — caller już to robi
+    saveAll();
+  }
+  localStorage.setItem(MK, '1');
 }
 
 // ════════════════════════════════════════
@@ -2403,8 +3467,38 @@ function toggleAddForm() {
     : '+ Nowe zadanie <kbd style="font-size:9px;opacity:.5">N</kbd>';
   if (open) {
     document.getElementById('new-date').value = todayISO();
+    // auto-select current project in the cat dropdown
+    const catSel   = document.getElementById('new-cat');
+    const subSel   = document.getElementById('new-subproj');
+    const isGeneral = activeProject === 'general' || activeProject === 'telegram';
+    if (catSel) catSel.style.display = isGeneral ? '' : 'none';
+    if (subSel) { subSel.style.display = 'none'; subSel.value = ''; }
+    if (!isGeneral && catSel) {
+      // inside a specific project — pre-fill cat/subproj
+      if (projectsSubView && activeProject === 'projekty') {
+        // inside a sub-project (e.g. szpilki) — show both selects
+        catSel.value = 'projekty'; catSel.style.display = '';
+        subSel.value = projectsSubView; subSel.style.display = '';
+      } else if (activeProject === 'projekty') {
+        catSel.value = 'projekty'; catSel.style.display = '';
+        subSel.style.display = '';
+      } else {
+        catSel.value = activeProject;
+      }
+    } else if (catSel) {
+      catSel.value = '';
+      onCatChange();
+    }
     setTimeout(() => document.getElementById('new-text').focus(), 50);
   }
+}
+
+function onCatChange() {
+  const catSel    = document.getElementById('new-cat');
+  const subSel    = document.getElementById('new-subproj');
+  const isProj    = catSel && catSel.value === 'projekty';
+  if (subSel) subSel.style.display = isProj ? '' : 'none';
+  if (subSel && !isProj) subSel.value = '';
 }
 
 function onSecChange() {
@@ -2412,6 +3506,18 @@ function onSecChange() {
   const sec   = secEl.value;
   const quad  = document.getElementById('new-quad');
   quad.style.display = sec === 'todo' ? '' : 'none';
+
+  // show cat selector only in general/telegram view
+  const catSel = document.getElementById('new-cat');
+  const showCat = activeProject === 'general' || activeProject === 'telegram';
+  if (catSel) catSel.style.display = showCat ? '' : 'none';
+  // reset subproj if hiding
+  if (!showCat) {
+    const subSel = document.getElementById('new-subproj');
+    if (subSel) { subSel.style.display = 'none'; subSel.value = ''; }
+  } else {
+    onCatChange();
+  }
 
   // hide ai/pawel options for projects that don't have those sections
   const hasAiPawel = activeProject === 'vibecoding';
@@ -2443,14 +3549,26 @@ function submitNewItem() {
   const quad  = sec === 'todo' ? document.getElementById('new-quad').value : null;
   const date  = pickerToDisplay(document.getElementById('new-date').value);
   const pawel = document.getElementById('new-pawel').checked;
-  const cat   = document.getElementById('new-cat').value || null;
+  const catSelEl  = document.getElementById('new-cat');
+  const subProjEl = document.getElementById('new-subproj');
+  const showCatSel = activeProject === 'general' || activeProject === 'telegram';
+  let cat;
+  if (showCatSel) {
+    const rawCat = catSelEl.value || null;
+    // if "projekty" was chosen, resolve to the sub-project key
+    cat = (rawCat === 'projekty' && subProjEl && subProjEl.value) ? subProjEl.value : rawCat;
+  } else {
+    cat = activeProject !== 'general' ? activeProject : null;
+  }
 
   const text = rawText;
   const note = date ? `📅${date}` : '';
   const id   = 'u' + Date.now();
 
   pushHistory();
-  items.push({ id, sec, quad, checked: false, inProgress: false, priority: false, pawel, cat, note, text });
+  // BUG4 fix: w general view — przypisz _project żeby autoSave wiedział gdzie zapisać
+  const _proj = activeProject !== 'general' ? null : (cat || null);
+  items.push({ id, sec, quad, checked: false, inProgress: false, priority: false, pawel, cat, note, text, _project: _proj });
 
   const targetSec = sections.find(s => s.id === sec);
   if (targetSec) targetSec.collapsed = false;
@@ -2923,15 +4041,15 @@ function switchProject(pid) {
   if (form)  form.classList.remove('open');
   if (btn)   btn.innerHTML = '+ Nowe zadanie <kbd style="font-size:9px;opacity:.5">N</kbd>';
 
-  // hide/show add button + filter bar in projects view
+  // hide/show add button + filter bar in projects/cykliczne view
   const filterBar = document.querySelector('.filter-bar');
   const actionsBar = document.querySelector('.actions');
-  const hideUI = pid === 'projekty';
+  const hideUI = pid === 'projekty' || pid === 'cykliczne';
   if (filterBar)  filterBar.style.display  = hideUI ? 'none' : '';
   if (actionsBar) actionsBar.style.display = hideUI ? 'none' : '';
 
   if (pid === 'general') {
-    items = loadAggregateItems();
+    items = []; // Supabase is source of truth; don't pre-load localStorage
   } else if (pid === 'projekty') {
     items = [];
   } else {
@@ -2939,12 +4057,13 @@ function switchProject(pid) {
   }
 
   render();
+  if (pid !== 'projekty') syncFromSupabase();
 
   document.querySelectorAll('.proj-tab').forEach(t => t.classList.remove('active'));
   const tabEl = document.getElementById('pt-' + pid);
   if (tabEl) tabEl.classList.add('active');
 
-  const titles = { general:'Wszystkie', prywatne:'Prywatne', dp:'DOP', vns:'VNS', projekty:'Projekty', szpilki:'Zdunek — Szpilki', vibecoding:'Vibe Coding' };
+  const titles = { general:'Wszystkie', prywatne:'Prywatne', dp:'DOP', vns:'VNS', projekty:'Projekty', szpilki:'Zdunek — Szpilki', vibecoding:'Vibe Coding', cykliczne:'🔁 Cykliczne' };
   document.getElementById('proj-title').textContent = titles[pid] || (PROJECTS[pid] && PROJECTS[pid].label) || pid;
 }
 
@@ -2963,6 +4082,7 @@ function openSubProject(key) {
   if (actionsBar) actionsBar.style.display = '';
   loadState();
   render();
+  syncFromSupabase();
   document.getElementById('proj-title').textContent = SUB_PROJECTS[key] ? SUB_PROJECTS[key].label : key;
 }
 
@@ -3059,6 +4179,48 @@ function clearSelection() {
   render();
 }
 
+function showBulkMoveMenu(e) {
+  closeMoveMenu();
+  const menu = document.createElement('div');
+  menu.className = 'move-menu';
+  menu.id = 'bulk-move-menu';
+  const PROJ_LABELS = Object.fromEntries(Object.entries(PROJECTS).map(([k,v]) => [k, v.label]));
+  const targets = Object.keys(PROJECTS).filter(k => k !== 'general' && k !== 'projekty' && k !== activeProject);
+  menu.innerHTML = targets.map(k => `<div class="move-item" onclick="applyBulkMove('${k}')">${PROJ_LABELS[k]}</div>`).join('');
+  const btn = e.currentTarget;
+  const rect = btn.getBoundingClientRect();
+  menu.style.cssText = `position:fixed;top:${rect.bottom+4}px;left:${rect.left}px;z-index:9999`;
+  document.body.appendChild(menu);
+  setTimeout(() => document.addEventListener('click', closeMoveMenu, { once: true }), 10);
+}
+
+async function applyBulkMove(targetProject) {
+  closeMoveMenu();
+  if (!selectedIds.size) return;
+  pushHistory();
+  const ids = [...selectedIds];
+  // Collect children of selected parents too
+  const allIds = [];
+  ids.forEach(id => {
+    if (!allIds.includes(id)) allIds.push(id);
+    getChildren(id).forEach(c => { if (!allIds.includes(c.id)) allIds.push(c.id); });
+  });
+  try {
+    await sb.from('tasks').update({ project: targetProject, cat: targetProject }).in('id', allIds);
+  } catch(e) { console.warn('bulkMove error', e); }
+  allIds.forEach(aid => {
+    const it = items.find(i => i.id === aid);
+    if (it) { it._project = targetProject; it.cat = targetProject; }
+  });
+  items = items.filter(i => !allIds.includes(i.id));
+  selectedIds.clear();
+  updateBulkToolbar();
+  render();
+  saveAll();
+  const label = PROJECTS[targetProject]?.label || targetProject;
+  showToast(`Przeniesiono ${ids.length} zadań do ${label}`);
+}
+
 function applyBulkDate() {
   const dateEl  = document.getElementById('bulk-date');
   const dateStr = pickerToDisplay(dateEl.value);
@@ -3086,15 +4248,17 @@ function applyBulkStatus(status) {
   render(); autoSave();
 }
 
-// Initial load — localStorage (fast), then Supabase sync in background
+// Initial load — sections filter, then Supabase sync
+const _allowedOnStart = SECTIONS_BY_PROJECT[activeProject] || ['todo','done'];
+sections = SECTIONS_DEF.filter(s => _allowedOnStart.includes(s.id)).map(s => JSON.parse(JSON.stringify(s)));
 if (activeProject === 'general') {
-  items = loadAggregateItems();
+  items = []; // BUG1: Supabase is source of truth for general view
 } else {
   loadState();
 }
 render();
 onSecChange();
-setTimeout(syncFromSupabase, 200);
+setTimeout(syncFromSupabase, 50); // BUG1: szybszy sync (50ms zamiast 200ms)
 
 // ── PWA Service Worker ──
 if ('serviceWorker' in navigator) {
@@ -3146,7 +4310,7 @@ function showItemSheet(id) {
     showDateMenu(id, fakeEv);
   });
 
-  mkBtn('📝', (item.note||'').replace(/📅[\d.]+\s*/,'').trim() ? 'Edytuj notatkę' : 'Dodaj notatkę',
+  mkBtn('📝', parseItemNote(item).notePart.replace(/📅[\d.]+\s*/,'').trim() ? 'Edytuj notatkę' : 'Dodaj notatkę',
         '', () => { openNote(id); });
 
   mkBtn('✏', 'Edytuj zadanie', '', () => openEdit(id));
@@ -3216,6 +4380,7 @@ function showMoreNav() {
     { key: 'vibecoding', icon: '💻', label: 'Vibe Coding' },
     { key: 'telegram',   icon: '📲', label: 'Telegram'    },
     { key: 'spotkania',  icon: '🤝', label: 'Spotkania'   },
+    { key: 'cykliczne',  icon: '🔁', label: 'Cykliczne'   },
   ].forEach(({ key, icon, label }) => {
     const b = document.createElement('button');
     b.className = 'sheet-btn';
@@ -3240,6 +4405,51 @@ window.addEventListener('resize', () => {
   const nav = document.getElementById('mobile-nav');
   if (window.innerWidth <= 640 && !nav) initMobileNav();
 });
+
+// ════════════════════════════════════════
+//  ADD SUB-PROJECT MODAL
+// ════════════════════════════════════════
+function openAddSubProjectModal() {
+  let modal = document.getElementById('add-subproj-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'add-subproj-modal';
+    modal.innerHTML = `
+      <div class="subproj-modal-box">
+        <h3>📂 Nowy projekt</h3>
+        <input class="subproj-modal-input" id="subproj-icon-input" placeholder="Ikona (emoji, np. 🎬)" maxlength="4">
+        <input class="subproj-modal-input" id="subproj-name-input" placeholder="Nazwa projektu (np. Appborn)" maxlength="60">
+        <input class="subproj-modal-input" id="subproj-desc-input" placeholder="Krótki opis (opcjonalnie)" maxlength="80">
+        <div class="subproj-modal-row" style="justify-content:flex-end">
+          <button class="subproj-btn" onclick="closeAddSubProjectModal()">Anuluj</button>
+          <button class="subproj-btn primary" onclick="submitAddSubProject()">Dodaj projekt</button>
+        </div>
+      </div>`;
+    modal.addEventListener('click', e => { if (e.target === modal) closeAddSubProjectModal(); });
+    document.body.appendChild(modal);
+  }
+  document.getElementById('subproj-icon-input').value = '';
+  document.getElementById('subproj-name-input').value = '';
+  document.getElementById('subproj-desc-input').value = '';
+  modal.classList.add('open');
+  setTimeout(() => document.getElementById('subproj-name-input').focus(), 80);
+}
+function closeAddSubProjectModal() {
+  const modal = document.getElementById('add-subproj-modal');
+  if (modal) modal.classList.remove('open');
+}
+function submitAddSubProject() {
+  const name = document.getElementById('subproj-name-input').value.trim();
+  if (!name) { document.getElementById('subproj-name-input').focus(); return; }
+  const icon = document.getElementById('subproj-icon-input').value.trim() || '📁';
+  const desc = document.getElementById('subproj-desc-input').value.trim() || '';
+  // generate key from name (slugify)
+  const key = 'custom_' + name.toLowerCase().replace(/[^a-z0-9]/g, '_').replace(/_+/g,'_').replace(/^_|_$/g,'');
+  saveCustomSubProject(key, { label: name, icon, desc });
+  closeAddSubProjectModal();
+  renderProjectsView();
+}
+loadCustomSubProjects();
 </script>
 </body>
 </html>
