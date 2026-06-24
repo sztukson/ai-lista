@@ -197,6 +197,10 @@
   .item { position: relative; }
   .item.dragging         { opacity: .2; }
   .item.is-done .item-text { text-decoration: line-through; color: var(--muted); }
+  .item.is-tg-pending .item-text { text-decoration: line-through; color: var(--green); }
+  .item.is-tg-pending { border-left: 3px solid var(--green); }
+  .btn-tg-confirm { background: rgba(57,208,200,.15); border: 1px solid var(--green); color: var(--green); border-radius: 6px; padding: 2px 7px; font-size: 11px; cursor: pointer; margin-left: 4px; }
+  .btn-tg-reject  { background: rgba(248,81,73,.1);  border: 1px solid var(--red);   color: var(--red);   border-radius: 6px; padding: 2px 7px; font-size: 11px; cursor: pointer; margin-left: 2px; }
   .item.is-done .num       { opacity: .4; }
   .item.is-inprogress      { border-left: 3px solid rgba(230,126,34,.6); background: rgba(230,126,34,.04); }
   .item.is-inprogress .item-text { font-style: italic; }
@@ -1083,6 +1087,23 @@ async function fetchTGReview() {
   } catch(e) { console.warn('fetchTGReview', e); }
 }
 
+async function confirmTGItem(id) {
+  const item = items.find(i => i.id === id);
+  if (!item) return;
+  pushHistory();
+  item.checked = true; item.sec = 'done';
+  item.note = (item.note || '').replace(/\s*\[TG✓[^\]]*\]/g, '').trim();
+  render(); autoSave();
+  showToast('✅ Zatwierdzone z TG', false);
+}
+async function rejectTGItem2(id) {
+  const item = items.find(i => i.id === id);
+  if (!item) return;
+  pushHistory();
+  item.note = (item.note || '').replace(/\s*\[TG✓[^\]]*\]/g, '').trim();
+  render(); autoSave();
+  showToast('↩️ Cofnięto TG-done', false);
+}
 async function confirmTGDone(id) {
   await sb.from('tasks').update({ checked: true, sec: 'done', tg_reviewed: false, completed_at: new Date().toISOString() }).eq('id', id);
   tgReviewItems = tgReviewItems.filter(i => i.id !== id);
@@ -2658,10 +2679,12 @@ function makeItem(item, num, isChildView = false) {
   const isChild = isChildView || !!parseParent(item);
 
   const catLabels = { prywatne:'Prywatne', dp:'DOP', vns:'VNS', telegram:'Telegram', szpilki:'Szpilki', vibecoding:'Vibe', fundacja:'Fundacja', cykliczne:'Cykliczne', spotkania:'Spotkania' };
+  const isTGPending = !item.checked && typeof item.note === 'string' && item.note.includes('[TG✓');
   el.className = 'item'
     + (item.checked    ? ' is-done'       : '')
     + (item.inProgress ? ' is-inprogress' : '')
     + (item.priority   ? ' is-priority'   : '')
+    + (isTGPending     ? ' is-tg-pending' : '')
     + (selectedIds.has(item.id) ? ' selected' : '')
     + (noteOpen        ? ' is-expanded'   : '')
     + (isChild         ? ' is-child'      : '');
@@ -2689,6 +2712,7 @@ function makeItem(item, num, isChildView = false) {
     <button class="btn-delete-item"   onclick="event.stopPropagation();deleteItem('${item.id}')"   title="Usuń">✕</button>
     <button class="btn-edit-item"     onclick="event.stopPropagation();duplicateItem('${item.id}')" title="Duplikuj" style="opacity:.7">⧉</button>
     <button class="btn-more-item"   onclick="event.stopPropagation();showItemSheet('${item.id}')" title="Więcej">⋯</button>
+    ${isTGPending ? `<span style="font-size:11px;color:var(--green);margin-left:4px" title="Oznaczone przez Telegram">📲</span><button class="btn-tg-confirm" onclick="event.stopPropagation();confirmTGItem('${item.id}')" title="Zatwierdź jako zrobione">✅ Zatwierdź</button><button class="btn-tg-reject" onclick="event.stopPropagation();rejectTGItem2('${item.id}')" title="Cofnij — wróć do normalnego">↩️</button>` : ''}
   `;
 
   // Expand panel (subtasks + optional note) — visible when noteOpen
