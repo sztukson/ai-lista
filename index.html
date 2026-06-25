@@ -2835,7 +2835,7 @@ function makeItem(item, num, isChildView = false) {
             <input type="checkbox" ${item.pawel?'checked':''}> [P] Paweł
           </label>
           <button class="btn-mic" id="emic-${item.id}" onclick="event.stopPropagation();toggleEditMic('${item.id}')" title="Dyktuj">🎤</button>
-          <input type="number" id="eit-dur-${item.id}" min="5" max="480" step="5" placeholder="⏱ min" title="Szacowany czas (minuty)" style="width:70px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:5px 8px;font-size:12px;font-family:inherit" value="${(() => { const td = timerLoad(); return (td.estimates||{})[item.id] || ''; })()}">
+          <input type="number" id="eit-dur-${item.id}" min="1" max="999" step="1" placeholder="⏱ czas" title="Szacowany czas" style="width:60px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:6px 0 0 6px;padding:5px 8px;font-size:12px;font-family:inherit;border-right:none" value="${(() => { const td = timerLoad(); const est=(td.estimates||{})[item.id]; return est ? (est%60===0&&est>=60 ? est/60 : est) : ''; })()}"><select id="eit-dur-unit-${item.id}" style="background:var(--bg);border:1px solid var(--border);color:var(--muted);border-radius:0 6px 6px 0;padding:5px 4px;font-size:11px;font-family:inherit;cursor:pointer" title="Jednostka">${(() => { const td=timerLoad(); const est=(td.estimates||{})[item.id]; const isH=est&&est%60===0&&est>=60; return `<option value="min"${!isH?' selected':''}>min</option><option value="h"${isH?' selected':''}>godz</option>`; })()}</select>
           <button class="btn-save-edit"   onclick="event.stopPropagation();saveEdit('${item.id}')">✓ Zapisz</button>
           <button class="btn-cancel-edit" onclick="event.stopPropagation();closeEdit()">✕ Anuluj</button>
         </div>
@@ -2890,7 +2890,7 @@ function makeItem(item, num, isChildView = false) {
       ${(() => { const projKey = item.cat || (activeProject !== 'general' ? activeProject : null) || item._project; return projKey ? `<span class="badge-cat cat-${projKey}" onclick="event.stopPropagation();showMoveMenu('${item.id}',event)" title="Zmień projekt">${catLabels[projKey]||projKey}</span>` : ''; })()}
     </div>
     <button class="btn-progress-item ${item.inProgress?'is-active':''}" onclick="event.stopPropagation();toggleInProgress('${item.id}')" title="${item.inProgress?'Usuń W trakcie':'Oznacz jako W trakcie'}">⏳</button>
-    ${(() => { const td = timerLoad(); const isAct = td.activeId === item.id; const est = td.estimates && td.estimates[item.id]; const total = timerGetTotal(item.id); if (isAct) { const ms = td.startedAt ? Date.now() - new Date(td.startedAt).getTime() : 0; return `<span class="timer-badge" data-timerid="${item.id}">⏱ ${timerFmtMs(ms)}</span><button class="btn-timer-stop" onclick="event.stopPropagation();timerStop()" title="Stop timera">⏹</button>`; } return `${est ? `<span class="timer-est" onclick="timerEstimate('${item.id}',event)" title="Zmień szacunek czasowy">${est}min</span>` : ''}${total ? `<span class="timer-total" title="Łącznie: ${timerFmtMs(total)}">${timerFmtMs(total)}</span>` : ''}<button class="btn-timer-start" onclick="event.stopPropagation();timerStart('${item.id}')" title="Start timera · Shift+klik = ustaw szacunek">▶</button>`; })()}
+    ${(() => { const td = timerLoad(); const isAct = td.activeId === item.id; const est = td.estimates && td.estimates[item.id]; const total = timerGetTotal(item.id); if (isAct) { const ms = td.startedAt ? Date.now() - new Date(td.startedAt).getTime() : 0; return `<span class="timer-badge" data-timerid="${item.id}">⏱ ${timerFmtMs(ms)}</span><button class="btn-timer-stop" onclick="event.stopPropagation();timerStop()" title="Stop timera">⏹</button>`; } return `${est ? `<span class="timer-est" onclick="timerEstimate('${item.id}',event)" title="Zmień szacunek czasowy">${timerFmtEst(est)}</span>` : ''}${total ? `<span class="timer-total" title="Łącznie: ${timerFmtMs(total)}">${timerFmtMs(total)}</span>` : ''}<button class="btn-timer-start" onclick="event.stopPropagation();timerStart('${item.id}')" title="Start timera · Shift+klik = ustaw szacunek">▶</button>`; })()}
     <button class="btn-note-item ${(hasNote||hasSubtasks||hasChildren)?'has-note':''}" onclick="event.stopPropagation();toggleNote('${item.id}')" title="${noteOpen?'Schowaj':'Rozwiń'}">📝</button>
     <button class="btn-date-item"   onclick="event.stopPropagation();showDateMenu('${item.id}',event)" title="Dodaj datę">📅</button>
     ${isChild ? `<button class="btn-promote" onclick="event.stopPropagation();promoteItem('${item.id}')" title="Przenieś na główny poziom">↑ wyżej</button>` : ''}
@@ -3422,8 +3422,11 @@ function saveEdit(id) {
 
   // Zapisz szacunek czasu jeśli podany
   const durEl = document.getElementById('eit-dur-' + id);
+  const unitEl = document.getElementById('eit-dur-unit-' + id);
   if (durEl && durEl.value) {
-    const mins = parseInt(durEl.value, 10);
+    const raw = parseFloat(durEl.value);
+    const unit = unitEl ? unitEl.value : 'min';
+    const mins = Math.round(unit === 'h' ? raw * 60 : raw);
     const td = timerLoad();
     if (!td.estimates) td.estimates = {};
     if (!isNaN(mins) && mins > 0) td.estimates[id] = mins;
@@ -4737,6 +4740,13 @@ function timerLoad() {
 function timerSave(data) {
   localStorage.setItem('ai-timer', JSON.stringify(data));
 }
+function timerFmtEst(minutes) {
+  if (!minutes) return '';
+  if (minutes < 60) return `${minutes}min`;
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return m ? `${h}h ${m}min` : `${h}h`;
+}
 function timerFmtMs(ms) {
   const s = Math.floor(ms / 1000);
   const hh = Math.floor(s / 3600);
@@ -4799,10 +4809,19 @@ function timerTickUI() {
 function timerEstimate(itemId, evt) {
   evt && evt.stopPropagation();
   const t = timerLoad();
-  const cur = (t.estimates || {})[itemId] || '';
-  const val = prompt(`Szacowany czas zadania (minuty):`, cur);
+  const curMin = (t.estimates || {})[itemId] || '';
+  const curStr = curMin ? timerFmtEst(curMin) : '';
+  const val = prompt(`Szacowany czas (np. 30min, 2h, 1.5h):`, curStr);
   if (val === null) return;
-  const mins = parseInt(val, 10);
+  const str = val.trim().toLowerCase();
+  let mins = 0;
+  if (str.endsWith('h')) {
+    mins = Math.round(parseFloat(str) * 60);
+  } else if (str.endsWith('min')) {
+    mins = parseInt(str, 10);
+  } else {
+    mins = parseInt(str, 10);
+  }
   if (!t.estimates) t.estimates = {};
   if (!isNaN(mins) && mins > 0) t.estimates[itemId] = mins;
   else delete t.estimates[itemId];
