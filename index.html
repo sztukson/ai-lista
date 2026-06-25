@@ -2835,6 +2835,7 @@ function makeItem(item, num, isChildView = false) {
             <input type="checkbox" ${item.pawel?'checked':''}> [P] Paweł
           </label>
           <button class="btn-mic" id="emic-${item.id}" onclick="event.stopPropagation();toggleEditMic('${item.id}')" title="Dyktuj">🎤</button>
+          <input type="number" id="eit-dur-${item.id}" min="5" max="480" step="5" placeholder="⏱ min" title="Szacowany czas (minuty)" style="width:70px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:5px 8px;font-size:12px;font-family:inherit" value="${(() => { const td = timerLoad(); return (td.estimates||{})[item.id] || ''; })()}">
           <button class="btn-save-edit"   onclick="event.stopPropagation();saveEdit('${item.id}')">✓ Zapisz</button>
           <button class="btn-cancel-edit" onclick="event.stopPropagation();closeEdit()">✕ Anuluj</button>
         </div>
@@ -2905,6 +2906,26 @@ function makeItem(item, num, isChildView = false) {
   if (noteOpen) {
     const detail = document.createElement('div');
     detail.className = 'item-detail';
+
+    // ── Timer info widget ──
+    const td = timerLoad();
+    const estimate = (td.estimates || {})[item.id];
+    const history = (td.history || {})[item.id] || [];
+    const isActive = td.activeId === item.id;
+    const totalHistMs = history.reduce((s, h) => s + (h.elapsed || 0), 0);
+    const currentMs = isActive && td.startedAt ? Date.now() - new Date(td.startedAt).getTime() : 0;
+    const grandTotalMs = totalHistMs + currentMs;
+    if (estimate || grandTotalMs > 0 || isActive) {
+      const tw = document.createElement('div');
+      tw.style.cssText = 'display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:6px 10px;background:rgba(230,126,34,.07);border:1px solid rgba(230,126,34,.2);border-radius:7px;margin-bottom:6px;font-size:11px;';
+      const estLabel = estimate ? `<span style="color:var(--muted)">Szacunek: <b style="color:var(--text)">${estimate} min</b></span>` : '';
+      const totalLabel = grandTotalMs > 0 ? `<span style="color:var(--orange)">⏱ Łącznie: <b>${timerFmtMs(grandTotalMs)}</b></span>` : '';
+      const sessLabel = history.length > 0 ? `<span style="color:var(--muted)">${history.length} sesj${history.length === 1 ? 'a' : history.length < 5 ? 'e' : 'i'}</span>` : '';
+      const activeLabel = isActive ? `<span class="timer-badge" data-timerid="${item.id}" style="font-size:11px">⏱ ${timerFmtMs(currentMs)}</span>` : '';
+      tw.innerHTML = [estLabel, totalLabel, sessLabel, activeLabel].filter(Boolean).join('<span style="color:var(--border)">·</span>');
+      if (!tw.innerHTML.trim()) tw.style.display = 'none';
+      detail.appendChild(tw);
+    }
 
     // Note textarea — only when explicitly opened
     const noteTextOpen = openNoteTexts.has(item.id);
@@ -3397,6 +3418,16 @@ function saveEdit(id) {
       item.sec  = newSec;
       item.quad = newSec === 'todo' ? (newQuad || 'q2') : null;
     }
+  }
+
+  // Zapisz szacunek czasu jeśli podany
+  const durEl = document.getElementById('eit-dur-' + id);
+  if (durEl && durEl.value) {
+    const mins = parseInt(durEl.value, 10);
+    const td = timerLoad();
+    if (!td.estimates) td.estimates = {};
+    if (!isNaN(mins) && mins > 0) td.estimates[id] = mins;
+    timerSave(td);
   }
 
   editingId = null;
@@ -4732,10 +4763,13 @@ function timerStart(itemId) {
   t.activeId = itemId;
   t.startedAt = new Date().toISOString();
   timerSave(t);
+  // Auto "W trakcie"
+  const item = items.find(i => i.id === itemId);
+  if (item && !item.checked) { item.inProgress = true; autoSave(); }
   if (timerInterval) clearInterval(timerInterval);
   timerInterval = setInterval(timerTickUI, 1000);
   render();
-  showToast('⏱ Timer wystartował', false);
+  showToast('⏱ Timer wystartował · zadanie → W trakcie', false);
 }
 function timerStop() {
   const t = timerLoad();
