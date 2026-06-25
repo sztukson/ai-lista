@@ -1029,10 +1029,11 @@
   <div id="tg-review-section" style="display:none;margin:0 0 16px;background:rgba(0,188,212,.07);border:1px solid rgba(0,188,212,.25);border-radius:10px;overflow:hidden;"></div>
 
   <div class="overview">
-    <div class="stat-card" onclick="scrollToStat('q1')"><div class="stat-value" id="s-q1" style="color:var(--red)">0</div><div class="stat-label">🔴 Teraz</div></div>
-    <div class="stat-card" onclick="scrollToStat('q2')"><div class="stat-value" id="s-q2" style="color:var(--yellow)">0</div><div class="stat-label">🟡 Zaplanuj</div></div>
-    <div class="stat-card" onclick="scrollToStat('done')"><div class="stat-value" id="s-done" style="color:var(--green)">0</div><div class="stat-label">✓ Zrobione</div></div>
-    <div class="stat-card" onclick="scrollToStat('inprogress')"><div class="stat-value" id="s-inprogress" style="color:var(--orange)">0</div><div class="stat-label">⏳ W trakcie</div></div>
+    <div class="stat-card" id="sc-q1"        onclick="setFilter('q1')"       ><div class="stat-value" id="s-q1"         style="color:var(--red)">0</div><div class="stat-label">🔴 Teraz</div></div>
+    <div class="stat-card" id="sc-nodate"     onclick="setFilter('nodate')"   ><div class="stat-value" id="s-nodate"     style="color:var(--yellow)">0</div><div class="stat-label">🟡 Zaplanuj</div></div>
+    <div class="stat-card" id="sc-inprogress" onclick="setFilter('inprogress')"><div class="stat-value" id="s-inprogress" style="color:var(--orange)">0</div><div class="stat-label">⏳ W trakcie</div></div>
+    <div class="stat-card" id="sc-overdue"    onclick="setFilter('overdue')"  ><div class="stat-value" id="s-overdue"    style="color:var(--red)">0</div><div class="stat-label">🔴 Termin!</div></div>
+    <div class="stat-card" id="sc-done"       onclick="setFilter('done')"     ><div class="stat-value" id="s-done"       style="color:var(--green)">0</div><div class="stat-label">✓ Zrobione</div></div>
   </div>
 
   <div class="main-progress">
@@ -1852,10 +1853,11 @@ function getChildren(parentId) {
 function setFilter(f) {
   if (activeFilter === f) f = 'all';
   activeFilter = f;
-  ['all','priority','today','overdue','inprogress','zaplanowane','done','prywatne','firmowe','dop','projekty'].forEach(k => {
+  ['all','priority','today','overdue','inprogress','zaplanowane','done','q1','nodate','prywatne','firmowe','dop','projekty'].forEach(k => {
     const el = document.getElementById('f-'+k);
     if (el) el.classList.toggle('active', k === f);
   });
+  updateStats(); // odśwież podświetlenie kafelków
   render();
 }
 
@@ -1866,6 +1868,8 @@ function applyFilter(list) {
   if (activeFilter === 'inprogress')  return list.filter(i => i.inProgress);
   if (activeFilter === 'zaplanowane') return list.filter(i => i.sec === 'zaplanowane');
   if (activeFilter === 'done')        return list.filter(i => i.checked || i.sec === 'done');
+  if (activeFilter === 'q1')          return list.filter(i => i.sec === 'todo' && i.quad === 'q1' && !i.checked);
+  if (activeFilter === 'nodate')      return list.filter(i => !i.checked && !getItemDate(i));
   if (activeFilter === 'prywatne')    return list.filter(i => i.cat === 'prywatne');
   if (activeFilter === 'firmowe')     return list.filter(i => i.cat === 'firmowe');
   if (activeFilter === 'dop')         return list.filter(i => i.cat === 'dop');
@@ -3632,19 +3636,27 @@ function resetChecked() {
 //  STATS
 // ════════════════════════════════════════
 function updateStats() {
-  const q1c  = items.filter(i => i.sec==='todo' && i.quad==='q1' && !i.checked).length;
-  const q2c  = items.filter(i => i.sec==='todo' && i.quad==='q2' && !i.checked).length;
-  const done = items.filter(i => i.checked).length;
+  const q1c    = items.filter(i => i.sec==='todo' && i.quad==='q1' && !i.checked).length;
+  const nodate = items.filter(i => !i.checked && !getItemDate(i)).length;
+  const done   = items.filter(i => i.checked).length;
   const inprog = items.filter(i => i.inProgress && !i.checked).length;
-  const total = items.length;
-  const pct  = Math.round(done / total * 100);
+  const overdue = items.filter(i => { const dt = getItemDate(i); return dt && dt < TODAY && !i.checked; }).length;
+  const total  = items.length;
+  const pct    = Math.round(done / Math.max(1, total) * 100);
 
   document.getElementById('s-q1').textContent         = q1c;
-  document.getElementById('s-q2').textContent         = q2c;
+  document.getElementById('s-nodate').textContent     = nodate;
   document.getElementById('s-done').textContent       = done;
   document.getElementById('s-inprogress').textContent = inprog;
+  document.getElementById('s-overdue').textContent    = overdue;
   document.getElementById('pct').textContent          = pct + '%';
   document.getElementById('bar').style.width          = pct + '%';
+
+  // Podświetl aktywny kafelek
+  ['q1','nodate','inprogress','overdue','done'].forEach(k => {
+    const el = document.getElementById('sc-' + k);
+    if (el) el.style.outline = activeFilter === k ? '2px solid var(--cyan)' : '';
+  });
 }
 
 // ════════════════════════════════════════
