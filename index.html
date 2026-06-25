@@ -1399,13 +1399,19 @@ async function syncFromSupabase() {
       if (remote !== null) items = remote; // null=error (keep existing); [] = valid empty project
     } else return;
     migrateEmbeddedSubtasks();
+    // Cache do localStorage (offline fallback)
+    try {
+      const cacheKey = PROJECTS[activeProject] ? PROJECTS[activeProject].storageKey : null;
+      if (cacheKey) localStorage.setItem(cacheKey, JSON.stringify({ _saved: new Date().toISOString(), items }));
+    } catch(e) {}
     render();
     fetchTGReview();
     const sbEl = document.getElementById('sb-status');
     if (sbEl) sbEl.innerHTML = '<span style="color:var(--green)">☁ online</span>';
   } catch(e) {
+    // Supabase niedostępne — zachowaj dane z localStorage (loadState już załadował)
     const sbEl = document.getElementById('sb-status');
-    if (sbEl) sbEl.innerHTML = '<span style="color:var(--red)">☁ offline</span>';
+    if (sbEl) sbEl.innerHTML = '<span style="color:var(--red)" title="Brak połączenia — widoczne dane z cache">☁ offline</span>';
   }
 }
 
@@ -4581,17 +4587,13 @@ function applyBulkStatus(status) {
   render(); autoSave();
 }
 
-// Initial load — sections filter, then Supabase sync
+// Initial load — zawsze ładuj localStorage (offline fallback), potem sync Supabase
 const _allowedOnStart = SECTIONS_BY_PROJECT[activeProject] || ['todo','done'];
 sections = SECTIONS_DEF.filter(s => _allowedOnStart.includes(s.id)).map(s => JSON.parse(JSON.stringify(s)));
-if (activeProject === 'general') {
-  items = []; // BUG1: Supabase is source of truth for general view
-} else {
-  loadState();
-}
+loadState(); // zawsze — cache offline dla wszystkich projektów włącznie z general
 render();
 onSecChange();
-setTimeout(syncFromSupabase, 50); // BUG1: szybszy sync (50ms zamiast 200ms)
+setTimeout(syncFromSupabase, 50);
 
 // ── PWA Service Worker ──
 if ('serviceWorker' in navigator) {
