@@ -4973,44 +4973,70 @@ function mdTimerHistLoad() {
   try { return JSON.parse(localStorage.getItem('md-timer-history') || '{}'); } catch(e) { return {}; }
 }
 function mdTimerHistSave(h) { localStorage.setItem('md-timer-history', JSON.stringify(h)); }
+function mdTimerTotalMs(id) {
+  const hist = mdTimerHistLoad();
+  return (hist[id] || []).reduce((s, e) => s + (e.elapsed || 0), 0);
+}
 
 let mdTimerInterval = null;
 function mdTimerStart(id, type) {
   const active = mdTimerLoad();
-  if (active && active.id !== id) mdTimerStop(false);
-  mdTimerSave({ id, type, startedAt: new Date().toISOString() });
+  if (active && active.id !== id) {
+    // inne zadanie — zatrzymaj bez toastu
+    mdTimerStop(false, true);
+  }
+  const existing = mdTimerLoad();
+  const accMs = (existing && existing.id === id && existing.paused) ? (existing.accumulatedMs || 0) : 0;
+  mdTimerSave({ id, type, startedAt: new Date().toISOString(), accumulatedMs: accMs, paused: false });
   if (mdTimerInterval) clearInterval(mdTimerInterval);
   mdTimerInterval = setInterval(mdTimerTickUI, 1000);
   renderDayView();
-  showToast('⏱ Timer wystartował', false);
+  showToast(accMs > 0 ? '▶ Wznowiono' : '▶ Timer wystartował', false);
 }
-function mdTimerStop(rerender) {
+function mdTimerPause() {
+  const active = mdTimerLoad();
+  if (!active || active.paused) return;
+  const sessionMs = Date.now() - new Date(active.startedAt).getTime();
+  const accMs = (active.accumulatedMs || 0) + sessionMs;
+  mdTimerSave({ ...active, startedAt: null, accumulatedMs: accMs, paused: true, pausedAt: new Date().toISOString() });
+  if (mdTimerInterval) { clearInterval(mdTimerInterval); mdTimerInterval = null; }
+  const mm = Math.floor(accMs / 60000), ss = Math.floor((accMs % 60000) / 1000);
+  showToast(`⏸ Pauza · ${mm}m ${ss}s łącznie`, false);
+  renderDayView();
+}
+function mdTimerStop(rerender, silent) {
   const active = mdTimerLoad();
   if (!active) return;
-  const elapsed = Date.now() - new Date(active.startedAt).getTime();
-  const hist = mdTimerHistLoad();
-  if (!hist[active.id]) hist[active.id] = [];
-  hist[active.id].push({ start: active.startedAt, end: new Date().toISOString(), elapsed });
-  mdTimerHistSave(hist);
+  let sessionMs = 0;
+  if (!active.paused && active.startedAt) sessionMs = Date.now() - new Date(active.startedAt).getTime();
+  const totalSession = (active.accumulatedMs || 0) + sessionMs;
+  if (totalSession > 0) {
+    const hist = mdTimerHistLoad();
+    if (!hist[active.id]) hist[active.id] = [];
+    hist[active.id].push({ start: active.startedAt || active.pausedAt, end: new Date().toISOString(), elapsed: totalSession });
+    mdTimerHistSave(hist);
+  }
   mdTimerSave(null);
   if (mdTimerInterval) { clearInterval(mdTimerInterval); mdTimerInterval = null; }
-  const ms = elapsed;
-  const mm = Math.floor(ms / 60000), ss = Math.floor((ms % 60000) / 1000);
-  showToast(`⏱ Zatrzymano · ${mm}m ${ss}s`, false);
+  if (!silent) {
+    const mm = Math.floor(totalSession / 60000), ss = Math.floor((totalSession % 60000) / 1000);
+    showToast(`⏹ Zakończono · ${mm}m ${ss}s`, false);
+  }
   if (rerender !== false) renderDayView();
 }
 function mdTimerTickUI() {
   const active = mdTimerLoad();
-  if (!active || !active.startedAt) return;
-  const ms = Date.now() - new Date(active.startedAt).getTime();
+  if (!active || active.paused || !active.startedAt) return;
+  const sessionMs = Date.now() - new Date(active.startedAt).getTime();
+  const totalMs = (active.accumulatedMs || 0) + sessionMs;
+  const dur = active.dur || 0;
   document.querySelectorAll(`.md-timer-badge[data-md-timerid="${active.id}"]`).forEach(el => {
-    const dur = parseInt(el.dataset.dur || '0', 10);
-    if (dur > 0) {
-      const remaining = dur * 60000 - ms;
+    const durEl = parseInt(el.dataset.dur || '0', 10);
+    if (durEl > 0) {
+      const remaining = durEl * 60000 - totalMs;
       if (remaining <= 0) {
         el.textContent = '⏰ +' + mdFmtElapsed(Math.abs(remaining));
         el.style.color = 'var(--red)';
-        // fire notification once
         if (!el.dataset.notified) {
           el.dataset.notified = '1';
           const item = document.querySelector(`.md-block[data-md-id="${active.id}"] .md-block-text`);
@@ -5024,7 +5050,7 @@ function mdTimerTickUI() {
         el.textContent = '⏱ ' + mdFmtElapsed(remaining);
       }
     } else {
-      el.textContent = '⏱ ' + mdFmtElapsed(ms);
+      el.textContent = '⏱ ' + mdFmtElapsed(totalMs);
     }
   });
 }
@@ -5127,14 +5153,25 @@ function renderDayView() {
     const durStr = mdDurLabel(dur);
 
     const isActive = active && active.id === item.id;
+    const isPaused = isActive && active.paused;
+    const isRunning = isActive && !active.paused;
     let timerBtn = '';
-    if (isActive) {
-      const hist = mdTimerHistLoad();
-      const elapsed = Date.now() - new Date(active.startedAt).getTime();
-      timerBtn = `<span class="md-timer-badge" data-md-timerid="${item.id}" data-dur="${dur}">${mdFmtElapsed(dur > 0 ? dur*60000 - elapsed : elapsed)}</span>
-        <button class="md-timer-btn md-timer-btn-stop" onclick="event.stopPropagation();mdTimerStop()">⏹</button>`;
+    if (isRunning) {
+      const sessionMs = Date.now() - new Date(active.startedAt).getTime();
+      const totalMs = (active.accumulatedMs || 0) + sessionMs;
+      const display = dur > 0 ? mdFmtElapsed(Math.max(0, dur*60000 - totalMs)) : mdFmtElapsed(totalMs);
+      timerBtn = `<span class="md-timer-badge" data-md-timerid="${item.id}" data-dur="${dur}">⏱ ${display}</span>
+        <button class="md-timer-btn" onclick="event.stopPropagation();mdTimerPause()" title="Pauza">⏸</button>
+        <button class="md-timer-btn md-timer-btn-stop" onclick="event.stopPropagation();mdTimerStop()" title="Stop">⏹</button>`;
+    } else if (isPaused) {
+      const accMs = active.accumulatedMs || 0;
+      timerBtn = `<span class="md-timer-badge" style="color:var(--muted)">⏸ ${mdFmtElapsed(accMs)}</span>
+        <button class="md-timer-btn" onclick="event.stopPropagation();mdTimerStart('${item.id}','${item.type}')" title="Wznów">▶</button>
+        <button class="md-timer-btn md-timer-btn-stop" onclick="event.stopPropagation();mdTimerStop()" title="Stop">⏹</button>`;
     } else {
-      timerBtn = `<button class="md-timer-btn" onclick="event.stopPropagation();mdTimerStart('${item.id}','${item.type}')">▶</button>`;
+      const totalHist = mdTimerTotalMs(item.id);
+      const histBadge = totalHist > 0 ? `<span class="md-timer-badge" style="color:var(--muted);opacity:.7" title="Łączny czas">${mdFmtElapsed(totalHist)}</span>` : '';
+      timerBtn = `${histBadge}<button class="md-timer-btn" onclick="event.stopPropagation();mdTimerStart('${item.id}','${item.type}')" title="Start">▶</button>`;
     }
 
     html += `<div class="${blockClass}"
