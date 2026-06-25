@@ -929,7 +929,7 @@
   .md-block-header { display:flex; align-items:center; gap:5px; flex-wrap:wrap; }
   .md-block-time { font-size:10px; font-family:'JetBrains Mono',monospace; color:var(--muted); flex-shrink:0; }
   .md-block-type { font-size:10px; flex-shrink:0; }
-  .md-block-text { font-size:11px; color:var(--text); line-height:1.3; overflow:hidden; }
+  .md-block-text { font-size:11px; color:var(--text); line-height:1.3; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
   .md-block-actions { display:flex; gap:3px; flex-wrap:wrap; margin-top:2px; }
   .md-btn { background:none; border:1px solid var(--border); border-radius:5px; color:var(--muted); font-size:10px; padding:1px 6px; cursor:pointer; font-family:inherit; transition:all .12s; flex-shrink:0; }
   .md-btn:hover { border-color:var(--cyan); color:var(--text); }
@@ -3529,6 +3529,15 @@ function toggleCheck(id) {
     sections.find(s => s.id === 'done').collapsed = false;
     logAction('✓', `Zrobione: ${item.text.slice(0,55)}`);
   }
+  // Sync done state do Mój Dzień jeśli zadanie jest powiązane
+  try {
+    const today = new Date().toISOString().slice(0, 10);
+    const mdTasks = JSON.parse(localStorage.getItem('ai-dzien-tasks') || '{}');
+    const dayList = mdTasks[today] || [];
+    let changed = false;
+    dayList.forEach(t => { if (t.taskId === id) { t.done = item.checked; changed = true; } });
+    if (changed) localStorage.setItem('ai-dzien-tasks', JSON.stringify(mdTasks));
+  } catch(e) {}
   render(); autoSave();
 }
 
@@ -5146,6 +5155,11 @@ function renderDayView() {
     const dur = item.durationMin || 30;
     const heightPx = Math.max(30, dur);
     const isRoutine = item.type === 'routine';
+    // Sync done state z głównej listy jeśli task jest powiązany
+    if (item.taskId && typeof items !== 'undefined') {
+      const linked = items.find(i => i.id === item.taskId);
+      if (linked) item.done = linked.checked || linked.sec === 'done';
+    }
     const blockClass = `md-block ${isRoutine ? 'md-routine' : 'md-task'}${item.done ? ' md-done' : ''}`;
     const proj = item.proj || '';
     const badge = proj ? `<span class="md-block-proj md-proj-${proj}">${projLabels[proj]||proj}</span>` : '';
@@ -5176,6 +5190,7 @@ function renderDayView() {
 
     html += `<div class="${blockClass}"
       style="top:${topPx}px;height:${heightPx}px"
+      title="${escHtml(item.text)}"
       data-md-id="${item.id}" data-md-type="${item.type}">
       <div class="md-block-header">
         <span class="md-block-time">${timeStr} · ${durStr}</span>
