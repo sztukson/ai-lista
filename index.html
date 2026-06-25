@@ -4882,8 +4882,8 @@ timerInit();
 // ════════════════════════════════════════
 const MD_HOUR_PX = 60;   // pixels per hour
 const MD_START_H = 5;    // timeline starts at 5:00
-const MD_END_H   = 23;   // timeline ends at 23:00 (exclusive label; content until 23:59)
-const MD_CANVAS_H = (MD_END_H - MD_START_H) * MD_HOUR_PX; // 1080px
+const MD_END_H   = 24;   // timeline ends at 00:00 (midnight)
+const MD_CANVAS_H = (MD_END_H - MD_START_H) * MD_HOUR_PX; // 1140px
 
 let mdDate = todayISO ? todayISO() : new Date().toISOString().split('T')[0];
 let mdRoutines = [];
@@ -5082,7 +5082,7 @@ function renderDayView() {
   for (let h = MD_START_H; h <= MD_END_H; h++) {
     const y = (h - MD_START_H) * MD_HOUR_PX;
     html += `<div class="md-hour-line" style="top:${y}px"></div>`;
-    html += `<div class="md-hour-label-abs" style="top:${y}px">${String(h).padStart(2,'0')}:00</div>`;
+    html += `<div class="md-hour-label-abs" style="top:${y}px">${h === 24 ? '00:00' : String(h).padStart(2,'0') + ':00'}</div>`;
     if (h < MD_END_H) {
       html += `<div class="md-quarter-line" style="top:${y + 15}px"></div>`;
       html += `<div class="md-quarter-line" style="top:${y + 30}px"></div>`;
