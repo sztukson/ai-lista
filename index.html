@@ -864,45 +864,95 @@
   .tg-btn:hover { background:var(--surface2); }
 
   /* ════ MÓJ DZIEŃ ════ */
-  .md-nav { display:flex; align-items:center; gap:8px; margin-bottom:16px; background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:10px 14px; }
+  .md-nav { display:flex; align-items:center; gap:8px; margin-bottom:16px; background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:10px 14px; flex-wrap:wrap; }
   .md-nav-btn { background:var(--surface2); border:1px solid var(--border); border-radius:7px; color:var(--muted); font-size:14px; padding:4px 12px; cursor:pointer; transition:all .12s; font-family:inherit; }
   .md-nav-btn:hover { border-color:var(--cyan); color:var(--text); }
   .md-nav-btn.today { color:var(--cyan); border-color:rgba(57,208,200,.3); background:rgba(57,208,200,.08); }
-  .md-date-label { flex:1; text-align:center; font-size:14px; font-weight:700; color:var(--text); }
-  .md-add-toolbar { display:flex; gap:8px; margin-bottom:12px; }
+  .md-nav-btn.active-view { color:var(--orange); border-color:rgba(230,126,34,.3); background:rgba(230,126,34,.08); }
+  .md-date-label { flex:1; text-align:center; font-size:14px; font-weight:700; color:var(--text); min-width:140px; }
+  .md-add-toolbar { display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
   .md-add-toolbar .md-btn-add { background:rgba(57,208,200,.1); border:1px solid rgba(57,208,200,.3); color:var(--cyan); border-radius:8px; padding:7px 14px; font-size:12px; font-weight:600; cursor:pointer; font-family:inherit; transition:all .15s; }
   .md-add-toolbar .md-btn-add:hover { background:rgba(57,208,200,.2); }
   .md-add-toolbar .md-btn-routine { background:rgba(63,185,80,.08); border:1px solid rgba(63,185,80,.3); color:var(--green); }
   .md-add-toolbar .md-btn-routine:hover { background:rgba(63,185,80,.18); }
-  .md-timeline { display:flex; flex-direction:column; gap:2px; max-height:70vh; overflow-y:auto; padding-right:4px; scroll-behavior:smooth; }
-  .md-timeline::-webkit-scrollbar { width:4px; }
-  .md-timeline::-webkit-scrollbar-track { background:var(--surface2); border-radius:2px; }
-  .md-timeline::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
-  .md-hour-row { display:flex; align-items:flex-start; gap:0; min-height:36px; }
-  .md-hour-row.has-items { min-height:auto; }
-  .md-hour-label { width:52px; flex-shrink:0; font-size:11px; font-weight:600; color:var(--border); font-family:'JetBrains Mono',monospace; padding:10px 8px 0 0; text-align:right; }
-  .md-hour-row.has-items .md-hour-label { color:var(--muted); }
-  .md-hour-content { flex:1; border-left:1px solid var(--border); padding:4px 0 4px 10px; display:flex; flex-direction:column; gap:4px; }
-  .md-hour-row.is-now .md-hour-label { color:var(--orange); }
-  .md-hour-row.is-now .md-hour-content { border-left-color:var(--orange); border-left-width:2px; }
-  .md-block { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:8px 10px; display:flex; flex-direction:column; gap:4px; transition:border-color .12s; }
-  .md-block:hover { border-color:var(--cyan); }
-  .md-routine { border-left:3px solid var(--green); background:rgba(63,185,80,.04); }
-  .md-task    { border-left:3px solid var(--blue);  background:rgba(88,166,255,.04); }
-  .md-done    { opacity:.55; }
+
+  /* Unscheduled / overdue sections */
+  .md-section { background:var(--surface); border:1px solid var(--border); border-radius:10px; margin-bottom:10px; overflow:hidden; }
+  .md-section-hd { display:flex; align-items:center; gap:8px; padding:8px 12px; font-size:12px; font-weight:700; color:var(--muted); cursor:pointer; user-select:none; }
+  .md-section-hd:hover { color:var(--text); }
+  .md-section-body { padding:6px 10px 8px; display:flex; flex-direction:column; gap:4px; }
+  .md-unsched-item { display:flex; align-items:center; gap:8px; padding:5px 8px; border:1px solid var(--border); border-radius:6px; font-size:12px; cursor:pointer; transition:all .12s; }
+  .md-unsched-item:hover { border-color:var(--cyan); background:rgba(57,208,200,.06); }
+  .md-unsched-text { flex:1; color:var(--text); }
+  .md-unsched-proj { font-size:10px; font-weight:700; padding:1px 6px; border-radius:4px; }
+  .md-overdue-item { display:flex; align-items:center; gap:8px; padding:5px 8px; border:1px solid rgba(248,81,73,.3); border-radius:6px; font-size:12px; cursor:pointer; background:rgba(248,81,73,.04); transition:all .12s; }
+  .md-overdue-item:hover { background:rgba(248,81,73,.1); }
+  .md-overdue-text { flex:1; color:var(--text); }
+  .md-overdue-date { font-size:10px; color:var(--red); font-family:'JetBrains Mono',monospace; }
+
+  /* Canvas timeline */
+  .md-timeline-wrap { position:relative; max-height:72vh; overflow-y:auto; border:1px solid var(--border); border-radius:10px; background:var(--surface); }
+  .md-timeline-wrap::-webkit-scrollbar { width:4px; }
+  .md-timeline-wrap::-webkit-scrollbar-track { background:var(--surface2); }
+  .md-timeline-wrap::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+  .md-canvas { position:relative; margin-left:52px; }
+  .md-hour-label-abs { position:absolute; left:-52px; width:48px; font-size:10px; font-weight:600; color:var(--border); font-family:'JetBrains Mono',monospace; text-align:right; padding-right:8px; transform:translateY(-50%); pointer-events:none; }
+  .md-hour-line { position:absolute; left:0; right:0; border-top:1px solid var(--border); pointer-events:none; }
+  .md-quarter-line { position:absolute; left:0; right:0; border-top:1px dashed rgba(255,255,255,.04); pointer-events:none; }
+  .md-now-line { position:absolute; left:-52px; right:0; height:2px; background:var(--red); z-index:15; pointer-events:none; }
+  .md-now-dot { position:absolute; left:-56px; width:8px; height:8px; background:var(--red); border-radius:50%; top:-3px; }
+  .md-canvas-click { position:absolute; inset:0; z-index:1; cursor:crosshair; }
+
+  /* Blocks */
+  .md-block { position:absolute; left:4px; right:4px; border-radius:7px; padding:5px 8px; display:flex; flex-direction:column; gap:2px; cursor:grab; user-select:none; box-sizing:border-box; overflow:hidden; transition:box-shadow .12s, opacity .12s; z-index:10; }
+  .md-block:active { cursor:grabbing; box-shadow:0 4px 20px rgba(0,0,0,.4); }
+  .md-block.dragging { opacity:.85; z-index:50; box-shadow:0 6px 24px rgba(0,0,0,.5); }
+  .md-block:hover { box-shadow:0 2px 8px rgba(0,0,0,.25); }
+  .md-routine { border:1px solid rgba(63,185,80,.5); border-left:3px solid var(--green); background:rgba(63,185,80,.1); }
+  .md-task    { border:1px solid rgba(88,166,255,.4); border-left:3px solid var(--blue);  background:rgba(88,166,255,.08); }
+  .md-done    { opacity:.45; }
   .md-done .md-block-text { text-decoration:line-through; color:var(--muted); }
-  .md-block-header { display:flex; align-items:center; gap:6px; }
-  .md-block-time { font-size:10px; font-family:'JetBrains Mono',monospace; color:var(--muted); }
-  .md-block-type { font-size:11px; }
-  .md-block-text { font-size:12px; color:var(--text); line-height:1.4; }
-  .md-block-actions { display:flex; gap:4px; }
-  .md-btn { background:none; border:1px solid var(--border); border-radius:5px; color:var(--muted); font-size:11px; padding:2px 8px; cursor:pointer; font-family:inherit; transition:all .12s; }
+  .md-block-header { display:flex; align-items:center; gap:5px; flex-wrap:wrap; }
+  .md-block-time { font-size:10px; font-family:'JetBrains Mono',monospace; color:var(--muted); flex-shrink:0; }
+  .md-block-type { font-size:10px; flex-shrink:0; }
+  .md-block-text { font-size:11px; color:var(--text); line-height:1.3; overflow:hidden; }
+  .md-block-actions { display:flex; gap:3px; flex-wrap:wrap; margin-top:2px; }
+  .md-btn { background:none; border:1px solid var(--border); border-radius:5px; color:var(--muted); font-size:10px; padding:1px 6px; cursor:pointer; font-family:inherit; transition:all .12s; flex-shrink:0; }
   .md-btn:hover { border-color:var(--cyan); color:var(--text); }
   .md-btn-done { color:var(--green); border-color:rgba(63,185,80,.3); }
   .md-btn-done:hover { background:rgba(63,185,80,.1); }
   .md-btn-del:hover  { border-color:var(--red); color:var(--red); }
-  .md-add-slot { background:none; border:1px dashed var(--border); border-radius:5px; color:var(--border); font-size:11px; padding:3px 10px; cursor:pointer; font-family:inherit; align-self:flex-start; transition:all .12s; }
-  .md-add-slot:hover { border-color:var(--cyan); color:var(--cyan); }
+  .md-resize-handle { position:absolute; bottom:0; left:0; right:0; height:8px; cursor:ns-resize; background:linear-gradient(transparent, rgba(255,255,255,.08)); border-radius:0 0 7px 7px; z-index:20; }
+  .md-block-proj { font-size:9px; font-weight:700; padding:1px 5px; border-radius:4px; align-self:flex-start; flex-shrink:0; }
+  .md-proj-prywatne { background:rgba(248,81,73,.15); color:var(--red); border:1px solid rgba(248,81,73,.3); }
+  .md-proj-dp       { background:rgba(88,166,255,.15); color:var(--blue); border:1px solid rgba(88,166,255,.3); }
+  .md-proj-vns      { background:rgba(230,126,34,.15); color:var(--orange); border:1px solid rgba(230,126,34,.3); }
+  .md-proj-projekty { background:rgba(188,140,255,.15); color:var(--purple); border:1px solid rgba(188,140,255,.3); }
+  .md-proj-vibecoding { background:rgba(188,140,255,.15); color:var(--purple); border:1px solid rgba(188,140,255,.3); }
+  .md-proj-fundacja { background:rgba(232,197,71,.15); color:#e8c547; border:1px solid rgba(232,197,71,.3); }
+  .md-proj-spotkania { background:rgba(188,140,255,.15); color:var(--purple); border:1px solid rgba(188,140,255,.3); }
+
+  /* Block timer */
+  .md-timer-badge { font-size:10px; font-family:'JetBrains Mono',monospace; color:var(--orange); background:rgba(230,126,34,.15); border:1px solid rgba(230,126,34,.3); border-radius:4px; padding:0 4px; flex-shrink:0; }
+  .md-timer-btn { background:none; border:1px solid var(--border); border-radius:4px; color:var(--muted); font-size:10px; padding:1px 5px; cursor:pointer; flex-shrink:0; transition:all .12s; }
+  .md-timer-btn:hover { color:var(--green); border-color:rgba(63,185,80,.4); }
+  .md-timer-btn-stop { background:rgba(248,81,73,.1); border-color:rgba(248,81,73,.3); color:var(--red); }
+  .md-timer-btn-stop:hover { background:rgba(248,81,73,.2); }
+
+  /* Week view */
+  .md-week-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:6px; }
+  .md-week-col { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:8px 6px; cursor:pointer; transition:all .12s; min-height:80px; }
+  .md-week-col:hover { border-color:var(--cyan); }
+  .md-week-col.is-today { border-color:rgba(57,208,200,.5); background:rgba(57,208,200,.05); }
+  .md-week-col.is-selected { border-color:var(--orange); }
+  .md-week-col-hd { font-size:10px; font-weight:700; color:var(--muted); text-align:center; margin-bottom:4px; }
+  .md-week-col.is-today .md-week-col-hd { color:var(--cyan); }
+  .md-week-col-day { font-size:13px; font-weight:700; text-align:center; margin-bottom:6px; color:var(--text); }
+  .md-week-chip { font-size:9px; padding:2px 5px; border-radius:4px; margin-bottom:2px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+  .md-week-chip-routine { background:rgba(63,185,80,.15); color:var(--green); }
+  .md-week-chip-task    { background:rgba(88,166,255,.12); color:var(--blue); }
+  .md-week-chip-done    { opacity:.4; text-decoration:line-through; }
+
   /* Modal */
   .md-modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:9999; display:flex; align-items:center; justify-content:center; }
   .md-modal { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:22px 20px; width:min(420px,92vw); display:flex; flex-direction:column; gap:12px; max-height:90vh; overflow-y:auto; }
@@ -927,17 +977,6 @@
   .md-day-label:has(input:checked) { border-color:var(--green); color:var(--green); background:rgba(63,185,80,.1); }
   .md-quick-dur { background:var(--surface2); border:1px solid var(--border); color:var(--muted); border-radius:5px; padding:3px 8px; font-size:11px; cursor:pointer; font-family:inherit; transition:all .12s; }
   .md-quick-dur:hover { border-color:var(--cyan); color:var(--cyan); }
-  .md-block-move { display:flex; flex-direction:column; gap:1px; flex-shrink:0; }
-  .md-btn-move { background:none; border:1px solid var(--border); border-radius:4px; color:var(--border); font-size:10px; padding:1px 5px; cursor:pointer; line-height:1.3; transition:all .12s; }
-  .md-btn-move:hover { border-color:var(--cyan); color:var(--cyan); }
-  .md-block-proj { font-size:10px; font-weight:700; padding:1px 6px; border-radius:4px; align-self:flex-start; }
-  .md-proj-prywatne { background:rgba(248,81,73,.15); color:var(--red); border:1px solid rgba(248,81,73,.3); }
-  .md-proj-dp       { background:rgba(88,166,255,.15); color:var(--blue); border:1px solid rgba(88,166,255,.3); }
-  .md-proj-vns      { background:rgba(230,126,34,.15); color:var(--orange); border:1px solid rgba(230,126,34,.3); }
-  .md-proj-projekty { background:rgba(188,140,255,.15); color:var(--purple); border:1px solid rgba(188,140,255,.3); }
-  .md-proj-vibecoding { background:rgba(188,140,255,.15); color:var(--purple); border:1px solid rgba(188,140,255,.3); }
-  .md-proj-fundacja { background:rgba(232,197,71,.15); color:#e8c547; border:1px solid rgba(232,197,71,.3); }
-  .md-proj-spotkania { background:rgba(188,140,255,.15); color:var(--purple); border:1px solid rgba(188,140,255,.3); }
 
   /* ════ TIMER ════ */
   .btn-timer-start { display:none; background:none; border:none; cursor:pointer; font-size:12px; padding:0 3px; flex-shrink:0; color:var(--border); transition:color .12s; }
@@ -1069,16 +1108,17 @@
   <!-- ═══ MÓJ DZIEŃ ═══ -->
   <div id="moj-dzien-panel" style="display:none">
     <div class="md-nav">
-      <button class="md-nav-btn" onclick="mdPrevDay()">‹</button>
+      <button class="md-nav-btn" onclick="mdPrevDay()" id="md-prev-btn">‹</button>
       <span class="md-date-label" id="md-date-label">—</span>
-      <button class="md-nav-btn" onclick="mdNextDay()">›</button>
+      <button class="md-nav-btn" onclick="mdNextDay()" id="md-next-btn">›</button>
       <button class="md-nav-btn today" onclick="mdGoToday()">Dziś</button>
+      <button class="md-nav-btn" id="md-view-toggle" onclick="mdToggleView()">📅 Tydzień</button>
     </div>
-    <div class="md-add-toolbar">
+    <div class="md-add-toolbar" id="md-add-toolbar">
       <button class="md-btn-add" onclick="mdOpenAddModal('task')">📌 Dodaj zadanie dnia</button>
       <button class="md-btn-add md-btn-routine" onclick="mdOpenAddModal('routine')">🔁 Dodaj rutynę</button>
     </div>
-    <div class="md-timeline" id="md-timeline"></div>
+    <div id="md-main-content"></div>
   </div>
 
   <!-- Modal: dodaj rutynę / zadanie -->
@@ -4840,9 +4880,20 @@ timerInit();
 // ════════════════════════════════════════
 //  MÓJ DZIEŃ
 // ════════════════════════════════════════
+const MD_HOUR_PX = 60;   // pixels per hour
+const MD_START_H = 5;    // timeline starts at 5:00
+const MD_END_H   = 23;   // timeline ends at 23:00 (exclusive label; content until 23:59)
+const MD_CANVAS_H = (MD_END_H - MD_START_H) * MD_HOUR_PX; // 1080px
+
 let mdDate = todayISO ? todayISO() : new Date().toISOString().split('T')[0];
 let mdRoutines = [];
 let mdDayTasks = {};
+let mdViewMode = 'day'; // 'day' | 'week'
+
+// Drag state
+let mdDrag = null; // {el, id, type, origTop, startY, durationMin}
+// Resize state
+let mdResize = null; // {el, id, type, startY, origHeight, origDur}
 
 function mdLoad() {
   try { mdRoutines = JSON.parse(localStorage.getItem('ai-dzien-routines') || '[]'); } catch(e) { mdRoutines = []; }
@@ -4856,125 +4907,528 @@ function mdSave() {
 
 function mdGetItemsForDate(dateStr) {
   const date = new Date(dateStr + 'T12:00:00');
-  const dow = date.getDay(); // 0=Sun
+  const dow = date.getDay();
   const result = [];
-
   mdRoutines.forEach(r => {
     if (r.startDate && r.startDate > dateStr) return;
     if (r.endDate && r.endDate < dateStr) return;
-    const exc = r.exceptions || [];
-    if (exc.includes(dateStr)) return;
-
+    if ((r.exceptions || []).includes(dateStr)) return;
     let applies = false;
     if (r.recurrence === 'daily')    applies = true;
     else if (r.recurrence === 'weekdays') applies = dow >= 1 && dow <= 5;
     else if (r.recurrence === 'weekends') applies = dow === 0 || dow === 6;
     else if (r.recurrence === 'custom')   applies = Array.isArray(r.days) && r.days.map(Number).includes(dow);
-
     if (applies) {
       const doneKey = `md-done-${r.id}-${dateStr}`;
-      const done = localStorage.getItem(doneKey) === '1';
-      result.push({ ...r, type: 'routine', done, _doneKey: doneKey });
+      result.push({ ...r, type: 'routine', done: localStorage.getItem(doneKey) === '1', _doneKey: doneKey });
     }
   });
-
-  const dayTasks = mdDayTasks[dateStr] || [];
-  dayTasks.forEach(t => result.push({ ...t, type: 'task' }));
-
+  (mdDayTasks[dateStr] || []).forEach(t => result.push({ ...t, type: 'task' }));
   return result.sort((a, b) => (a.hour * 60 + (a.minute || 0)) - (b.hour * 60 + (b.minute || 0)));
 }
 
+// ── Helpers ──
+function mdMinToY(totalMin) {
+  return (totalMin - MD_START_H * 60) / 60 * MD_HOUR_PX;
+}
+function mdYToMin(y) {
+  const raw = (y / MD_HOUR_PX) * 60 + MD_START_H * 60;
+  return Math.max(MD_START_H * 60, Math.min((MD_END_H - 1) * 60 + 45, Math.round(raw / 15) * 15));
+}
+function mdFmtMin(totalMin) {
+  const h = Math.floor(totalMin / 60);
+  const m = totalMin % 60;
+  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+}
+function mdDurLabel(dur) {
+  if (!dur) return '30min';
+  if (dur < 60) return `${dur}min`;
+  const h = Math.floor(dur / 60), m = dur % 60;
+  return m ? `${h}h ${m}min` : `${h}h`;
+}
+
+// ── Block timer (localStorage) ──
+function mdTimerLoad() {
+  try { return JSON.parse(localStorage.getItem('md-active-timer') || 'null'); } catch(e) { return null; }
+}
+function mdTimerSave(t) { localStorage.setItem('md-active-timer', JSON.stringify(t)); }
+function mdTimerHistLoad() {
+  try { return JSON.parse(localStorage.getItem('md-timer-history') || '{}'); } catch(e) { return {}; }
+}
+function mdTimerHistSave(h) { localStorage.setItem('md-timer-history', JSON.stringify(h)); }
+
+let mdTimerInterval = null;
+function mdTimerStart(id, type) {
+  const active = mdTimerLoad();
+  if (active && active.id !== id) mdTimerStop(false);
+  mdTimerSave({ id, type, startedAt: new Date().toISOString() });
+  if (mdTimerInterval) clearInterval(mdTimerInterval);
+  mdTimerInterval = setInterval(mdTimerTickUI, 1000);
+  renderDayView();
+  showToast('⏱ Timer wystartował', false);
+}
+function mdTimerStop(rerender) {
+  const active = mdTimerLoad();
+  if (!active) return;
+  const elapsed = Date.now() - new Date(active.startedAt).getTime();
+  const hist = mdTimerHistLoad();
+  if (!hist[active.id]) hist[active.id] = [];
+  hist[active.id].push({ start: active.startedAt, end: new Date().toISOString(), elapsed });
+  mdTimerHistSave(hist);
+  mdTimerSave(null);
+  if (mdTimerInterval) { clearInterval(mdTimerInterval); mdTimerInterval = null; }
+  const ms = elapsed;
+  const mm = Math.floor(ms / 60000), ss = Math.floor((ms % 60000) / 1000);
+  showToast(`⏱ Zatrzymano · ${mm}m ${ss}s`, false);
+  if (rerender !== false) renderDayView();
+}
+function mdTimerTickUI() {
+  const active = mdTimerLoad();
+  if (!active || !active.startedAt) return;
+  const ms = Date.now() - new Date(active.startedAt).getTime();
+  document.querySelectorAll(`.md-timer-badge[data-md-timerid="${active.id}"]`).forEach(el => {
+    const dur = parseInt(el.dataset.dur || '0', 10);
+    if (dur > 0) {
+      const remaining = dur * 60000 - ms;
+      if (remaining <= 0) {
+        el.textContent = '⏰ +' + mdFmtElapsed(Math.abs(remaining));
+        el.style.color = 'var(--red)';
+        // fire notification once
+        if (!el.dataset.notified) {
+          el.dataset.notified = '1';
+          const item = document.querySelector(`.md-block[data-md-id="${active.id}"] .md-block-text`);
+          const txt = item ? item.textContent : 'blok';
+          if ('Notification' in window && Notification.permission === 'granted') {
+            new Notification('⏰ Czas minął', { body: txt, icon: '/icon-192.png' });
+          }
+          showToast(`⏰ Czas na: ${txt}`, false);
+        }
+      } else {
+        el.textContent = '⏱ ' + mdFmtElapsed(remaining);
+      }
+    } else {
+      el.textContent = '⏱ ' + mdFmtElapsed(ms);
+    }
+  });
+}
+function mdFmtElapsed(ms) {
+  const abs = Math.abs(ms);
+  const tot = Math.floor(abs / 1000);
+  const h = Math.floor(tot / 3600), m = Math.floor((tot % 3600) / 60), s = tot % 60;
+  if (h > 0) return `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+
+// ── Main render ──
 function renderDayView() {
   const mdPanel = document.getElementById('moj-dzien-panel');
   if (!mdPanel || mdPanel.style.display === 'none') return;
+  if (mdViewMode === 'week') { renderWeekView(); return; }
 
   const dayNames = ['Niedziela','Poniedziałek','Wtorek','Środa','Czwartek','Piątek','Sobota'];
   const date = new Date(mdDate + 'T12:00:00');
-  const [y, m, d] = mdDate.split('-');
-  const todayStr = (todayISO ? todayISO() : new Date().toISOString().split('T')[0]);
+  const [y, mon, d] = mdDate.split('-');
+  const todayStr = todayISO ? todayISO() : new Date().toISOString().split('T')[0];
   const isToday = mdDate === todayStr;
   const lbl = document.getElementById('md-date-label');
-  if (lbl) lbl.textContent = `${isToday ? 'Dziś · ' : ''}${dayNames[date.getDay()]}, ${d}.${m}.${y}`;
+  if (lbl) lbl.textContent = `${isToday ? 'Dziś · ' : ''}${dayNames[date.getDay()]}, ${d}.${mon}.${y}`;
+
+  const content = document.getElementById('md-main-content');
+  if (!content) return;
 
   const allItems = mdGetItemsForDate(mdDate);
-  const timeline = document.getElementById('md-timeline');
-  if (!timeline) return;
+  const active = mdTimerLoad();
 
-  const nowHour = new Date().getHours();
+  // ─ Proj labels helper ─
+  const projLabels = {prywatne:'Prywatne',dp:'DOP',vns:'VNS',projekty:'Projekty',vibecoding:'Vibe',fundacja:'Fundacja',spotkania:'Spotkania'};
+
+  // ─ Unscheduled from main list ─
+  const scheduledIds = new Set((mdDayTasks[mdDate] || []).map(t => t.taskId).filter(Boolean));
+  const unscheduled = (typeof items !== 'undefined' ? items : []).filter(i =>
+    i.dueDate === mdDate && !i.checked && !scheduledIds.has(i.id)
+  );
+
+  // ─ Overdue ─
+  const overdue = (typeof items !== 'undefined' ? items : []).filter(i =>
+    i.dueDate && i.dueDate < mdDate && !i.checked
+  );
+
   let html = '';
 
-  for (let hour = 5; hour <= 23; hour++) {
-    const hourItems = allItems.filter(i => i.hour === hour);
-    const hasItems = hourItems.length > 0;
-    const isNow = isToday && hour === nowHour;
-    const hStr = String(hour).padStart(2, '0') + ':00';
-
-    html += `<div class="md-hour-row${hasItems ? ' has-items' : ''}${isNow ? ' is-now' : ''}" data-hour="${hour}">`;
-    html += `<div class="md-hour-label">${hStr}</div>`;
-    html += `<div class="md-hour-content">`;
-
-    hourItems.forEach(item => {
-      const dur = item.durationMin || 30;
-      const durLabel = dur >= 60
-        ? `${Math.floor(dur / 60)}h${dur % 60 ? dur % 60 + 'min' : ''}`
-        : `${dur}min`;
-      const min = item.minute || 0;
-      const timeStr = `${String(item.hour).padStart(2, '0')}:${String(min).padStart(2, '0')}`;
-      const isRoutine = item.type === 'routine';
-      const cls = `md-block ${isRoutine ? 'md-routine' : 'md-task'}${item.done ? ' md-done' : ''}`;
-      const proj = item.proj || '';
-      const projLabels = {prywatne:'Prywatne',dp:'DOP',vns:'VNS',projekty:'Projekty',vibecoding:'Vibe',fundacja:'Fundacja',spotkania:'Spotkania'};
-      const projBadge = proj ? `<span class="md-block-proj md-proj-${proj}">${projLabels[proj]||proj}</span>` : '';
-
-      html += `<div class="${cls}" style="display:flex;gap:8px">
-        <div class="md-block-move">
-          <button class="md-btn-move" onclick="mdMoveItem('${item.id}','${item.type}',-1)" title="Wcześniej (−15min)">▲</button>
-          <button class="md-btn-move" onclick="mdMoveItem('${item.id}','${item.type}',1)" title="Później (+15min)">▼</button>
-        </div>
-        <div style="flex:1;min-width:0">
-          <div class="md-block-header">
-            <span class="md-block-time">${timeStr} · ${durLabel}</span>
-            <span class="md-block-type">${isRoutine ? '🔁' : '📌'}</span>
-            ${projBadge}
-          </div>
-          <div class="md-block-text">${escHtml(item.text)}</div>
-          <div class="md-block-actions">
-            <button class="md-btn md-btn-done" onclick="mdToggleDone('${item.id}','${item.type}')">${item.done ? '✓ Zrobione' : '○ Zrób'}</button>
-            <button class="md-btn" onclick="mdSetItemNow('${item.id}','${item.type}')" title="Przesuń na bieżącą godzinę">🕐 Teraz</button>
-            <button class="md-btn md-btn-del" onclick="mdDeleteItem('${item.id}','${item.type}')">✕</button>
-          </div>
-        </div>
+  // ─ Unscheduled section ─
+  if (unscheduled.length > 0) {
+    html += `<div class="md-section">
+      <div class="md-section-hd" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'':'none'">
+        📋 Nieprzypisane na dziś <span style="color:var(--orange);margin-left:4px">${unscheduled.length}</span>
+        <span style="margin-left:auto;font-size:10px;color:var(--muted)">kliknij aby dodać do osi czasu</span>
+      </div>
+      <div class="md-section-body">`;
+    unscheduled.forEach(item => {
+      const proj = item.cat || item._project || '';
+      const badge = proj ? `<span class="md-unsched-proj md-proj-${proj}">${projLabels[proj]||proj}</span>` : '';
+      html += `<div class="md-unsched-item" onclick="mdAddFromMain('${item.id}')">
+        <span class="md-unsched-text">${escHtml(item.text)}</span>${badge}
+        <span style="font-size:10px;color:var(--muted)">+ Dodaj na oś</span>
       </div>`;
     });
-
-    html += `<button class="md-add-slot" onclick="mdOpenAddAtHour(${hour})">⊕ Dodaj</button>`;
     html += `</div></div>`;
   }
 
-  timeline.innerHTML = html;
+  // ─ Timeline canvas ─
+  html += `<div class="md-timeline-wrap" id="md-timeline-wrap">
+    <div class="md-canvas" id="md-canvas" style="height:${MD_CANVAS_H}px">`;
 
+  // Grid lines + labels
+  for (let h = MD_START_H; h <= MD_END_H; h++) {
+    const y = (h - MD_START_H) * MD_HOUR_PX;
+    html += `<div class="md-hour-line" style="top:${y}px"></div>`;
+    html += `<div class="md-hour-label-abs" style="top:${y}px">${String(h).padStart(2,'0')}:00</div>`;
+    if (h < MD_END_H) {
+      html += `<div class="md-quarter-line" style="top:${y + 15}px"></div>`;
+      html += `<div class="md-quarter-line" style="top:${y + 30}px"></div>`;
+      html += `<div class="md-quarter-line" style="top:${y + 45}px"></div>`;
+    }
+  }
+
+  // Click-to-add overlay
+  html += `<div class="md-canvas-click" id="md-canvas-click"></div>`;
+
+  // Blocks
+  allItems.forEach(item => {
+    const totalMin = item.hour * 60 + (item.minute || 0);
+    const topPx = mdMinToY(totalMin);
+    const dur = item.durationMin || 30;
+    const heightPx = Math.max(30, dur);
+    const isRoutine = item.type === 'routine';
+    const blockClass = `md-block ${isRoutine ? 'md-routine' : 'md-task'}${item.done ? ' md-done' : ''}`;
+    const proj = item.proj || '';
+    const badge = proj ? `<span class="md-block-proj md-proj-${proj}">${projLabels[proj]||proj}</span>` : '';
+    const timeStr = mdFmtMin(totalMin);
+    const durStr = mdDurLabel(dur);
+
+    const isActive = active && active.id === item.id;
+    let timerBtn = '';
+    if (isActive) {
+      const hist = mdTimerHistLoad();
+      const elapsed = Date.now() - new Date(active.startedAt).getTime();
+      timerBtn = `<span class="md-timer-badge" data-md-timerid="${item.id}" data-dur="${dur}">${mdFmtElapsed(dur > 0 ? dur*60000 - elapsed : elapsed)}</span>
+        <button class="md-timer-btn md-timer-btn-stop" onclick="event.stopPropagation();mdTimerStop()">⏹</button>`;
+    } else {
+      timerBtn = `<button class="md-timer-btn" onclick="event.stopPropagation();mdTimerStart('${item.id}','${item.type}')">▶</button>`;
+    }
+
+    html += `<div class="${blockClass}"
+      style="top:${topPx}px;height:${heightPx}px"
+      data-md-id="${item.id}" data-md-type="${item.type}">
+      <div class="md-block-header">
+        <span class="md-block-time">${timeStr} · ${durStr}</span>
+        <span class="md-block-type">${isRoutine ? '🔁' : '📌'}</span>
+        ${badge}
+        ${timerBtn}
+      </div>
+      <div class="md-block-text">${escHtml(item.text)}</div>
+      ${heightPx >= 60 ? `<div class="md-block-actions">
+        <button class="md-btn md-btn-done" onclick="event.stopPropagation();mdToggleDone('${item.id}','${item.type}')">${item.done ? '✓' : '○ Zrób'}</button>
+        <button class="md-btn" onclick="event.stopPropagation();mdSetItemNow('${item.id}','${item.type}')">🕐</button>
+        <button class="md-btn md-btn-del" onclick="event.stopPropagation();mdDeleteItem('${item.id}','${item.type}')">✕</button>
+      </div>` : ''}
+      <div class="md-resize-handle" data-md-id="${item.id}" data-md-type="${item.type}"></div>
+    </div>`;
+  });
+
+  // Now line
   if (isToday) {
-    const targetHour = Math.max(5, Math.min(23, nowHour));
-    const rows = timeline.querySelectorAll('.md-hour-row');
-    const targetRow = rows[targetHour - 5];
-    if (targetRow) setTimeout(() => targetRow.scrollIntoView({ behavior: 'smooth', block: 'center' }), 80);
+    const now = new Date();
+    const nowMin = now.getHours() * 60 + now.getMinutes();
+    if (nowMin >= MD_START_H * 60 && nowMin <= MD_END_H * 60) {
+      const nowY = mdMinToY(nowMin);
+      html += `<div class="md-now-line" style="top:${nowY}px"><div class="md-now-dot"></div></div>`;
+    }
+  }
+
+  html += `</div></div>`;
+
+  // ─ Overdue section ─
+  if (overdue.length > 0) {
+    html += `<div class="md-section" style="margin-top:10px">
+      <div class="md-section-hd" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'':'none'">
+        ⚠️ Przeterminowane <span style="color:var(--red);margin-left:4px">${overdue.length}</span>
+      </div>
+      <div class="md-section-body">`;
+    overdue.forEach(item => {
+      const [oy,om,od] = (item.dueDate||'').split('-');
+      html += `<div class="md-overdue-item" onclick="mdAddFromMain('${item.id}')">
+        <span class="md-overdue-text">${escHtml(item.text)}</span>
+        <span class="md-overdue-date">${od||'?'}.${om||'?'}</span>
+        <span style="font-size:10px;color:var(--muted)">→ dzisiaj</span>
+      </div>`;
+    });
+    html += `</div></div>`;
+  }
+
+  content.innerHTML = html;
+
+  // Attach drag/resize/click events
+  mdAttachEvents();
+
+  // Scroll to now
+  if (isToday) {
+    const wrap = document.getElementById('md-timeline-wrap');
+    const now = new Date();
+    const nowMin = now.getHours() * 60 + now.getMinutes();
+    const scrollTo = Math.max(0, mdMinToY(nowMin) - 120);
+    if (wrap) setTimeout(() => wrap.scrollTop = scrollTo, 80);
+  }
+
+  // Restart timer if active
+  if (active && active.startedAt && !mdTimerInterval) {
+    mdTimerInterval = setInterval(mdTimerTickUI, 1000);
+  }
+
+  // Request notification permission
+  if ('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission();
   }
 }
 
+// ── Week view ──
+function renderWeekView() {
+  const content = document.getElementById('md-main-content');
+  if (!content) return;
+  const lbl = document.getElementById('md-date-label');
+  const todayStr = todayISO ? todayISO() : new Date().toISOString().split('T')[0];
+
+  // Find Monday of current week
+  const cur = new Date(mdDate + 'T12:00:00');
+  const dayOfWeek = cur.getDay() === 0 ? 7 : cur.getDay();
+  const monday = new Date(cur);
+  monday.setDate(cur.getDate() - (dayOfWeek - 1));
+
+  const dayNames = ['Pn','Wt','Śr','Cz','Pt','Sb','Nd'];
+  if (lbl) {
+    const fri = new Date(monday); fri.setDate(monday.getDate() + 6);
+    lbl.textContent = `Tydzień ${monday.getDate()}.${monday.getMonth()+1} – ${fri.getDate()}.${fri.getMonth()+1}.${fri.getFullYear()}`;
+  }
+
+  let html = `<div class="md-week-grid">`;
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    const dateStr = d.toISOString().split('T')[0];
+    const isToday = dateStr === todayStr;
+    const isSel = dateStr === mdDate;
+    const items = mdGetItemsForDate(dateStr);
+    html += `<div class="md-week-col${isToday?' is-today':''}${isSel?' is-selected':''}" onclick="mdGoToDate('${dateStr}')">
+      <div class="md-week-col-hd">${dayNames[i]}</div>
+      <div class="md-week-col-day">${d.getDate()}</div>`;
+    items.slice(0, 5).forEach(item => {
+      html += `<div class="md-week-chip md-week-chip-${item.type}${item.done?' md-week-chip-done':''}" title="${escHtml(item.text)}">
+        ${mdFmtMin(item.hour*60+(item.minute||0))} ${escHtml(item.text)}
+      </div>`;
+    });
+    if (items.length > 5) html += `<div style="font-size:9px;color:var(--muted);padding:2px 5px">+${items.length - 5} więcej</div>`;
+    html += `</div>`;
+  }
+  html += `</div>`;
+  content.innerHTML = html;
+}
+
+function mdGoToDate(dateStr) {
+  mdDate = dateStr;
+  mdViewMode = 'day';
+  const btn = document.getElementById('md-view-toggle');
+  if (btn) { btn.textContent = '📅 Tydzień'; btn.classList.remove('active-view'); }
+  const toolbar = document.getElementById('md-add-toolbar');
+  if (toolbar) toolbar.style.display = '';
+  renderDayView();
+}
+
+function mdToggleView() {
+  mdViewMode = mdViewMode === 'week' ? 'day' : 'week';
+  const btn = document.getElementById('md-view-toggle');
+  const toolbar = document.getElementById('md-add-toolbar');
+  if (mdViewMode === 'week') {
+    if (btn) { btn.textContent = '📅 Dzień'; btn.classList.add('active-view'); }
+    if (toolbar) toolbar.style.display = 'none';
+  } else {
+    if (btn) { btn.textContent = '📅 Tydzień'; btn.classList.remove('active-view'); }
+    if (toolbar) toolbar.style.display = '';
+  }
+  renderDayView();
+}
+
+// ── Drag & Drop ──
+function mdAttachEvents() {
+  // Blocks — drag
+  document.querySelectorAll('#md-canvas .md-block').forEach(el => {
+    el.addEventListener('pointerdown', mdOnBlockPointerDown);
+  });
+  // Resize handles
+  document.querySelectorAll('#md-canvas .md-resize-handle').forEach(el => {
+    el.addEventListener('pointerdown', mdOnResizePointerDown);
+  });
+  // Canvas click to add
+  const cc = document.getElementById('md-canvas-click');
+  if (cc) cc.addEventListener('click', mdOnCanvasClick);
+}
+
+function mdOnBlockPointerDown(e) {
+  if (e.target.classList.contains('md-resize-handle')) return;
+  if (e.target.closest('button')) return;
+  const el = e.currentTarget;
+  const id = el.dataset.mdId;
+  const type = el.dataset.mdType;
+  const dur = parseInt(el.style.height, 10) || 30;
+  const canvasRect = document.getElementById('md-canvas').getBoundingClientRect();
+  el.setPointerCapture(e.pointerId);
+  el.classList.add('dragging');
+  mdDrag = { el, id, type, startY: e.clientY, origTop: parseInt(el.style.top, 10), durationMin: dur, canvasTop: canvasRect.top };
+  el.addEventListener('pointermove', mdOnDragMove);
+  el.addEventListener('pointerup', mdOnDragEnd);
+  e.preventDefault();
+}
+function mdOnDragMove(e) {
+  if (!mdDrag) return;
+  const dy = e.clientY - mdDrag.startY;
+  const newTop = Math.max(0, Math.min(MD_CANVAS_H - mdDrag.durationMin, mdDrag.origTop + dy));
+  mdDrag.el.style.top = newTop + 'px';
+}
+function mdOnDragEnd(e) {
+  if (!mdDrag) return;
+  const { el, id, type } = mdDrag;
+  el.classList.remove('dragging');
+  el.removeEventListener('pointermove', mdOnDragMove);
+  el.removeEventListener('pointerup', mdOnDragEnd);
+  const finalTop = parseInt(el.style.top, 10);
+  const totalMin = mdYToMin(finalTop);
+  const newHour = Math.floor(totalMin / 60);
+  const newMin = totalMin % 60;
+  mdUpdateItemTime(id, type, newHour, newMin);
+  mdDrag = null;
+}
+
+function mdOnResizePointerDown(e) {
+  e.stopPropagation();
+  const el = e.currentTarget.closest('.md-block');
+  if (!el) return;
+  const id = el.dataset.mdId;
+  const type = el.dataset.mdType;
+  el.setPointerCapture(e.pointerId);
+  const origHeight = parseInt(el.style.height, 10) || 30;
+  mdResize = { el, id, type, startY: e.clientY, origHeight };
+  e.currentTarget.addEventListener('pointermove', mdOnResizeMove);
+  e.currentTarget.addEventListener('pointerup', mdOnResizeEnd);
+  e.preventDefault();
+}
+function mdOnResizeMove(e) {
+  if (!mdResize) return;
+  const dy = e.clientY - mdResize.startY;
+  const newH = Math.max(15, mdResize.origHeight + dy);
+  mdResize.el.style.height = newH + 'px';
+}
+function mdOnResizeEnd(e) {
+  if (!mdResize) return;
+  const { el, id, type } = mdResize;
+  const finalH = parseInt(el.style.height, 10);
+  const newDurMin = Math.max(15, Math.round(finalH / MD_HOUR_PX * 60 / 15) * 15);
+  mdUpdateItemDuration(id, type, newDurMin);
+  e.currentTarget.removeEventListener('pointermove', mdOnResizeMove);
+  e.currentTarget.removeEventListener('pointerup', mdOnResizeEnd);
+  mdResize = null;
+}
+
+function mdOnCanvasClick(e) {
+  const canvas = document.getElementById('md-canvas');
+  if (!canvas) return;
+  const rect = canvas.getBoundingClientRect();
+  const y = e.clientY - rect.top;
+  const totalMin = mdYToMin(y);
+  const hour = Math.floor(totalMin / 60);
+  mdOpenAddAtHour(hour);
+}
+
+// ── Update helpers ──
+function mdUpdateItemTime(id, type, newHour, newMin) {
+  if (type === 'routine') {
+    const r = mdRoutines.find(r => r.id === id);
+    if (r) { r.hour = newHour; r.minute = newMin; mdSave(); }
+  } else {
+    const t = (mdDayTasks[mdDate] || []).find(t => t.id === id);
+    if (t) { t.hour = newHour; t.minute = newMin; mdSave(); }
+  }
+  renderDayView();
+}
+function mdUpdateItemDuration(id, type, newDurMin) {
+  if (type === 'routine') {
+    const r = mdRoutines.find(r => r.id === id);
+    if (r) { r.durationMin = newDurMin; mdSave(); }
+  } else {
+    const t = (mdDayTasks[mdDate] || []).find(t => t.id === id);
+    if (t) { t.durationMin = newDurMin; mdSave(); }
+  }
+  renderDayView();
+}
+
+// ── Add from main list ──
+function mdAddFromMain(taskId) {
+  const item = (typeof items !== 'undefined' ? items : []).find(i => i.id === taskId);
+  if (!item) return;
+  const now = new Date();
+  const overlay = document.createElement('div');
+  overlay.className = 'md-modal-overlay';
+  overlay.innerHTML = `<div class="md-modal">
+    <div class="md-modal-title">📌 Dodaj do osi czasu</div>
+    <div class="md-modal-text">${escHtml(item.text)}</div>
+    <div class="md-modal-row" style="align-items:flex-end;margin-top:8px">
+      <div style="display:flex;flex-direction:column;gap:4px;flex:1"><label>Godzina</label><input id="maf-hour" type="number" min="4" max="23" value="${now.getHours()}"></div>
+      <div style="display:flex;flex-direction:column;gap:4px;flex:1"><label>Minuta</label><input id="maf-min" type="number" min="0" max="59" value="${Math.round(now.getMinutes()/5)*5%60}"></div>
+      <div style="display:flex;flex-direction:column;gap:4px;flex:1"><label>Czas (min)</label><input id="maf-dur" type="number" min="15" max="480" value="30"></div>
+    </div>
+    <div class="md-modal-actions" style="margin-top:8px">
+      <button class="md-modal-btn md-modal-btn-cancel" onclick="this.closest('.md-modal-overlay').remove()">Anuluj</button>
+      <button class="md-modal-btn md-modal-btn-primary" onclick="mdAddFromMainSubmit('${taskId}');this.closest('.md-modal-overlay').remove()">Dodaj</button>
+    </div>
+  </div>`;
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
+}
+function mdAddFromMainSubmit(taskId) {
+  const item = (typeof items !== 'undefined' ? items : []).find(i => i.id === taskId);
+  if (!item) return;
+  const hour = parseInt(document.getElementById('maf-hour').value, 10) || 9;
+  const minute = parseInt(document.getElementById('maf-min').value, 10) || 0;
+  const dur = parseInt(document.getElementById('maf-dur').value, 10) || 30;
+  const id = 'md-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7);
+  if (!mdDayTasks[mdDate]) mdDayTasks[mdDate] = [];
+  mdDayTasks[mdDate].push({ id, text: item.text, hour, minute, durationMin: dur, proj: item.cat || item._project || '', done: false, taskId });
+  mdSave();
+  renderDayView();
+  showToast('📌 Dodano do osi czasu', false);
+}
+
 function mdPrevDay() {
-  const d = new Date(mdDate + 'T12:00:00');
-  d.setDate(d.getDate() - 1);
-  mdDate = d.toISOString().split('T')[0];
+  if (mdViewMode === 'week') {
+    const d = new Date(mdDate + 'T12:00:00'); d.setDate(d.getDate() - 7);
+    mdDate = d.toISOString().split('T')[0];
+  } else {
+    const d = new Date(mdDate + 'T12:00:00'); d.setDate(d.getDate() - 1);
+    mdDate = d.toISOString().split('T')[0];
+  }
   renderDayView();
 }
 function mdNextDay() {
-  const d = new Date(mdDate + 'T12:00:00');
-  d.setDate(d.getDate() + 1);
-  mdDate = d.toISOString().split('T')[0];
+  if (mdViewMode === 'week') {
+    const d = new Date(mdDate + 'T12:00:00'); d.setDate(d.getDate() + 7);
+    mdDate = d.toISOString().split('T')[0];
+  } else {
+    const d = new Date(mdDate + 'T12:00:00'); d.setDate(d.getDate() + 1);
+    mdDate = d.toISOString().split('T')[0];
+  }
   renderDayView();
 }
 function mdGoToday() {
   mdDate = todayISO ? todayISO() : new Date().toISOString().split('T')[0];
+  if (mdViewMode === 'week') { mdToggleView(); return; }
   renderDayView();
 }
 
@@ -5061,7 +5515,7 @@ function mdDeleteRoutineAll(id) {
 function mdSetNow() {
   const now = new Date();
   document.getElementById('md-add-hour').value = now.getHours();
-  document.getElementById('md-add-min').value = Math.round(now.getMinutes() / 5) * 5 % 60;
+  document.getElementById('md-add-min').value = now.getMinutes();
 }
 function mdOpenAddModal(type) {
   const now = new Date();
@@ -5119,24 +5573,7 @@ function mdSubmitAdd() {
   renderDayView();
   showToast(type === 'routine' ? '🔁 Rutyna dodana' : '📌 Zadanie dodane do dnia', false);
 }
-function mdMoveItem(id, type, dir) {
-  // dir: -1 = wcześniej 15min, +1 = później 15min
-  const adjust = (item) => {
-    let totalMin = item.hour * 60 + (item.minute || 0) + dir * 15;
-    totalMin = Math.max(5 * 60, Math.min(23 * 60 + 45, totalMin));
-    item.hour = Math.floor(totalMin / 60);
-    item.minute = totalMin % 60;
-  };
-  if (type === 'routine') {
-    const r = mdRoutines.find(r => r.id === id);
-    if (r) { adjust(r); mdSave(); }
-  } else {
-    const dayList = mdDayTasks[mdDate] || [];
-    const t = dayList.find(t => t.id === id);
-    if (t) { adjust(t); mdSave(); }
-  }
-  renderDayView();
-}
+
 function mdSetItemNow(id, type) {
   const now = new Date();
   const h = now.getHours();
@@ -5152,6 +5589,7 @@ function mdSetItemNow(id, type) {
   renderDayView();
   showToast('🕐 Przesunięto na teraz', false);
 }
+
 // Close md-add-modal on overlay click
 document.addEventListener('click', e => {
   const modal = document.getElementById('md-add-modal');
