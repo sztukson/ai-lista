@@ -4388,7 +4388,7 @@ function switchProject(pid) {
   if (actionsBar) actionsBar.style.display = hideUI ? 'none' : '';
 
   if (pid === 'general') {
-    items = []; // Supabase is source of truth; don't pre-load localStorage
+    loadState(); // pre-load cache; syncFromSupabase nadpisze świeżymi danymi
   } else if (pid === 'projekty') {
     items = [];
   } else {
