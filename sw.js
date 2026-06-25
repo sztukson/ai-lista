@@ -1,4 +1,4 @@
-const CACHE = 'ailista-v1';
+const CACHE = 'ailista-v3';
 const ASSETS = [
   './index.html',
   './manifest.json',
