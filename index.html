@@ -1052,11 +1052,13 @@
 
   <div class="filter-bar">
     <span class="filter-label">Filtr:</span>
-    <button class="btn-filter active" id="f-all"        onclick="setFilter('all')">Wszystkie</button>
-    <button class="btn-filter"        id="f-priority"   onclick="setFilter('priority')">★ Priorytet</button>
-    <button class="btn-filter"        id="f-inprogress" onclick="setFilter('inprogress')" style="color:var(--orange)">… W trakcie</button>
-    <button class="btn-filter"        id="f-today"      onclick="setFilter('today')">📅 Dziś</button>
-    <button class="btn-filter"        id="f-overdue"    onclick="setFilter('overdue')" style="color:var(--red)">🔴 Przeterminowane</button>
+    <button class="btn-filter active" id="f-all"          onclick="setFilter('all')">Wszystkie</button>
+    <button class="btn-filter"        id="f-today"        onclick="setFilter('today')">📅 Teraz</button>
+    <button class="btn-filter"        id="f-zaplanowane"  onclick="setFilter('zaplanowane')">🗓 Zaplanowane</button>
+    <button class="btn-filter"        id="f-inprogress"   onclick="setFilter('inprogress')" style="color:var(--orange)">⏳ W trakcie</button>
+    <button class="btn-filter"        id="f-done"         onclick="setFilter('done')" style="color:var(--green)">✓ Zrobione</button>
+    <button class="btn-filter"        id="f-overdue"      onclick="setFilter('overdue')" style="color:var(--red)">🔴 Przeterminowane</button>
+    <button class="btn-filter"        id="f-priority"     onclick="setFilter('priority')">★ Priorytet</button>
     <input id="search-input" type="text" placeholder="🔍 Szukaj…" oninput="setSearch(this.value)"
       class="search-inline"
       style="background:var(--surface);border:1px solid var(--border);color:var(--text);
@@ -1850,7 +1852,7 @@ function getChildren(parentId) {
 function setFilter(f) {
   if (activeFilter === f) f = 'all';
   activeFilter = f;
-  ['all','priority','today','overdue','inprogress','prywatne','firmowe','dop','projekty'].forEach(k => {
+  ['all','priority','today','overdue','inprogress','zaplanowane','done','prywatne','firmowe','dop','projekty'].forEach(k => {
     const el = document.getElementById('f-'+k);
     if (el) el.classList.toggle('active', k === f);
   });
@@ -1858,18 +1860,20 @@ function setFilter(f) {
 }
 
 function applyFilter(list) {
-  if (activeFilter === 'all')        return list;
-  if (activeFilter === 'priority')   return list.filter(i => i.priority);
-  if (activeFilter === 'pawel')      return list.filter(i => i.pawel);
-  if (activeFilter === 'inprogress') return list.filter(i => i.inProgress);
-  if (activeFilter === 'prywatne')   return list.filter(i => i.cat === 'prywatne');
-  if (activeFilter === 'firmowe')    return list.filter(i => i.cat === 'firmowe');
-  if (activeFilter === 'dop')        return list.filter(i => i.cat === 'dop');
-  if (activeFilter === 'projekty')   return list.filter(i => i.cat === 'projekty');
+  if (activeFilter === 'all')         return list;
+  if (activeFilter === 'priority')    return list.filter(i => i.priority);
+  if (activeFilter === 'pawel')       return list.filter(i => i.pawel);
+  if (activeFilter === 'inprogress')  return list.filter(i => i.inProgress);
+  if (activeFilter === 'zaplanowane') return list.filter(i => i.sec === 'zaplanowane');
+  if (activeFilter === 'done')        return list.filter(i => i.checked || i.sec === 'done');
+  if (activeFilter === 'prywatne')    return list.filter(i => i.cat === 'prywatne');
+  if (activeFilter === 'firmowe')     return list.filter(i => i.cat === 'firmowe');
+  if (activeFilter === 'dop')         return list.filter(i => i.cat === 'dop');
+  if (activeFilter === 'projekty')    return list.filter(i => i.cat === 'projekty');
   if (activeFilter === 'today') {
     return list.filter(i => {
       const dt = getItemDate(i);
-      return dt && dt.getTime() === TODAY.getTime();
+      return dt && dt.getTime() === TODAY.getTime() && !i.checked;
     });
   }
   if (activeFilter === 'overdue') {
@@ -2597,6 +2601,11 @@ function render() {
 
   sections.forEach(sec => {
     const secItems = items.filter(i => i.sec === sec.id && !parseParent(i));
+    // Przy aktywnym filtrze ukryj sekcję która nie ma pasujących wyników
+    if (activeFilter !== 'all') {
+      const filteredCount = applyFilter(secItems).length;
+      if (filteredCount === 0) return; // pomiń tę sekcję
+    }
     const div = document.createElement('div');
     div.className = 'section' + (sec.collapsed ? ' collapsed' : '');
     div.id = 'sec-' + sec.id;
