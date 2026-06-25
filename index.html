@@ -5292,6 +5292,8 @@ function mdAttachEvents() {
   if (cc) cc.addEventListener('click', mdOnCanvasClick);
 }
 
+const MD_DRAG_THRESH = 8; // px — poniżej tego progu to kliknięcie, nie drag
+
 function mdOnBlockPointerDown(e) {
   if (e.target.classList.contains('md-resize-handle')) return;
   if (e.target.closest('button')) return;
@@ -5301,8 +5303,8 @@ function mdOnBlockPointerDown(e) {
   const dur = parseInt(el.style.height, 10) || 30;
   const canvasRect = document.getElementById('md-canvas').getBoundingClientRect();
   el.setPointerCapture(e.pointerId);
-  el.classList.add('dragging');
-  mdDrag = { el, id, type, startY: e.clientY, origTop: parseInt(el.style.top, 10), durationMin: dur, canvasTop: canvasRect.top };
+  // Drag aktywuje się dopiero po przekroczeniu progu ruchu
+  mdDrag = { el, id, type, startY: e.clientY, origTop: parseInt(el.style.top, 10), durationMin: dur, canvasTop: canvasRect.top, active: false };
   el.addEventListener('pointermove', mdOnDragMove);
   el.addEventListener('pointerup', mdOnDragEnd);
   e.preventDefault();
@@ -5310,20 +5312,27 @@ function mdOnBlockPointerDown(e) {
 function mdOnDragMove(e) {
   if (!mdDrag) return;
   const dy = e.clientY - mdDrag.startY;
+  if (!mdDrag.active) {
+    if (Math.abs(dy) < MD_DRAG_THRESH) return; // nie przekroczył progu — ignoruj
+    mdDrag.active = true;
+    mdDrag.el.classList.add('dragging');
+  }
   const newTop = Math.max(0, Math.min(MD_CANVAS_H - mdDrag.durationMin, mdDrag.origTop + dy));
   mdDrag.el.style.top = newTop + 'px';
 }
 function mdOnDragEnd(e) {
   if (!mdDrag) return;
-  const { el, id, type } = mdDrag;
+  const { el, id, type, active } = mdDrag;
   el.classList.remove('dragging');
   el.removeEventListener('pointermove', mdOnDragMove);
   el.removeEventListener('pointerup', mdOnDragEnd);
-  const finalTop = parseInt(el.style.top, 10);
-  const totalMin = mdYToMin(finalTop);
-  const newHour = Math.floor(totalMin / 60);
-  const newMin = totalMin % 60;
-  mdUpdateItemTime(id, type, newHour, newMin);
+  if (active) {
+    const finalTop = parseInt(el.style.top, 10);
+    const totalMin = mdYToMin(finalTop);
+    const newHour = Math.floor(totalMin / 60);
+    const newMin = totalMin % 60;
+    mdUpdateItemTime(id, type, newHour, newMin);
+  }
   mdDrag = null;
 }
 
@@ -5335,7 +5344,7 @@ function mdOnResizePointerDown(e) {
   const type = el.dataset.mdType;
   el.setPointerCapture(e.pointerId);
   const origHeight = parseInt(el.style.height, 10) || 30;
-  mdResize = { el, id, type, startY: e.clientY, origHeight };
+  mdResize = { el, id, type, startY: e.clientY, origHeight, active: false };
   e.currentTarget.addEventListener('pointermove', mdOnResizeMove);
   e.currentTarget.addEventListener('pointerup', mdOnResizeEnd);
   e.preventDefault();
@@ -5343,15 +5352,21 @@ function mdOnResizePointerDown(e) {
 function mdOnResizeMove(e) {
   if (!mdResize) return;
   const dy = e.clientY - mdResize.startY;
+  if (!mdResize.active) {
+    if (Math.abs(dy) < MD_DRAG_THRESH) return;
+    mdResize.active = true;
+  }
   const newH = Math.max(15, mdResize.origHeight + dy);
   mdResize.el.style.height = newH + 'px';
 }
 function mdOnResizeEnd(e) {
   if (!mdResize) return;
-  const { el, id, type } = mdResize;
-  const finalH = parseInt(el.style.height, 10);
-  const newDurMin = Math.max(15, Math.round(finalH / MD_HOUR_PX * 60 / 15) * 15);
-  mdUpdateItemDuration(id, type, newDurMin);
+  const { el, id, type, active } = mdResize;
+  if (active) {
+    const finalH = parseInt(el.style.height, 10);
+    const newDurMin = Math.max(15, Math.round(finalH / MD_HOUR_PX * 60 / 15) * 15);
+    mdUpdateItemDuration(id, type, newDurMin);
+  }
   e.currentTarget.removeEventListener('pointermove', mdOnResizeMove);
   e.currentTarget.removeEventListener('pointerup', mdOnResizeEnd);
   mdResize = null;
