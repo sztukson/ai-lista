@@ -925,6 +925,19 @@
   .md-day-label { display:flex; align-items:center; gap:3px; background:var(--surface2); border:1px solid var(--border); border-radius:5px; padding:3px 7px; font-size:11px; color:var(--muted); cursor:pointer; user-select:none; transition:all .12s; }
   .md-day-label input { width:auto; padding:0; border:none; background:none; }
   .md-day-label:has(input:checked) { border-color:var(--green); color:var(--green); background:rgba(63,185,80,.1); }
+  .md-quick-dur { background:var(--surface2); border:1px solid var(--border); color:var(--muted); border-radius:5px; padding:3px 8px; font-size:11px; cursor:pointer; font-family:inherit; transition:all .12s; }
+  .md-quick-dur:hover { border-color:var(--cyan); color:var(--cyan); }
+  .md-block-move { display:flex; flex-direction:column; gap:1px; flex-shrink:0; }
+  .md-btn-move { background:none; border:1px solid var(--border); border-radius:4px; color:var(--border); font-size:10px; padding:1px 5px; cursor:pointer; line-height:1.3; transition:all .12s; }
+  .md-btn-move:hover { border-color:var(--cyan); color:var(--cyan); }
+  .md-block-proj { font-size:10px; font-weight:700; padding:1px 6px; border-radius:4px; align-self:flex-start; }
+  .md-proj-prywatne { background:rgba(248,81,73,.15); color:var(--red); border:1px solid rgba(248,81,73,.3); }
+  .md-proj-dp       { background:rgba(88,166,255,.15); color:var(--blue); border:1px solid rgba(88,166,255,.3); }
+  .md-proj-vns      { background:rgba(230,126,34,.15); color:var(--orange); border:1px solid rgba(230,126,34,.3); }
+  .md-proj-projekty { background:rgba(188,140,255,.15); color:var(--purple); border:1px solid rgba(188,140,255,.3); }
+  .md-proj-vibecoding { background:rgba(188,140,255,.15); color:var(--purple); border:1px solid rgba(188,140,255,.3); }
+  .md-proj-fundacja { background:rgba(232,197,71,.15); color:#e8c547; border:1px solid rgba(232,197,71,.3); }
+  .md-proj-spotkania { background:rgba(188,140,255,.15); color:var(--purple); border:1px solid rgba(188,140,255,.3); }
 
   /* ════ TIMER ════ */
   .btn-timer-start { display:none; background:none; border:none; cursor:pointer; font-size:12px; padding:0 3px; flex-shrink:0; color:var(--border); transition:color .12s; }
@@ -1073,34 +1086,46 @@
     <div class="md-modal">
       <div class="md-modal-title" id="md-modal-title">📌 Nowe zadanie dnia</div>
       <input id="md-add-text" type="text" placeholder="Co chcesz zrobić?" onkeydown="if(event.key==='Enter')mdSubmitAdd()">
-      <div class="md-modal-row">
+      <!-- Czas: godzina + minuta + "od teraz" -->
+      <div class="md-modal-row" style="align-items:flex-end">
         <div style="display:flex;flex-direction:column;gap:4px;flex:1">
           <label>Godzina</label>
           <input id="md-add-hour" type="number" min="4" max="23" value="9" style="width:100%">
         </div>
         <div style="display:flex;flex-direction:column;gap:4px;flex:1">
           <label>Minuta</label>
-          <select id="md-add-min" style="width:100%">
-            <option value="0">:00</option>
-            <option value="15">:15</option>
-            <option value="30">:30</option>
-            <option value="45">:45</option>
-          </select>
+          <input id="md-add-min" type="number" min="0" max="59" step="5" value="0" style="width:100%">
         </div>
-        <div style="display:flex;flex-direction:column;gap:4px;flex:2">
-          <label>Czas trwania</label>
-          <select id="md-add-dur">
-            <option value="10">10 min</option>
-            <option value="15">15 min</option>
-            <option value="20">20 min</option>
-            <option value="30" selected>30 min</option>
-            <option value="45">45 min</option>
-            <option value="60">1 godz</option>
-            <option value="90">1.5 godz</option>
-            <option value="120">2 godz</option>
-            <option value="180">3 godz</option>
-          </select>
+        <button class="md-modal-btn" style="flex:none;padding:7px 10px;font-size:11px;white-space:nowrap" onclick="mdSetNow()">🕐 Teraz</button>
+      </div>
+      <!-- Czas trwania: input + szybki wybór -->
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <label style="flex-shrink:0">Czas trwania (min):</label>
+          <input id="md-add-dur" type="number" min="5" max="480" step="5" value="30" style="width:70px">
         </div>
+        <div style="display:flex;gap:4px;flex-wrap:wrap">
+          <button class="md-quick-dur" onclick="document.getElementById('md-add-dur').value=15">15min</button>
+          <button class="md-quick-dur" onclick="document.getElementById('md-add-dur').value=30">30min</button>
+          <button class="md-quick-dur" onclick="document.getElementById('md-add-dur').value=45">45min</button>
+          <button class="md-quick-dur" onclick="document.getElementById('md-add-dur').value=60">1h</button>
+          <button class="md-quick-dur" onclick="document.getElementById('md-add-dur').value=90">1.5h</button>
+          <button class="md-quick-dur" onclick="document.getElementById('md-add-dur').value=120">2h</button>
+        </div>
+      </div>
+      <!-- Projekt -->
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <label>Projekt (opcjonalnie)</label>
+        <select id="md-add-proj">
+          <option value="">— brak —</option>
+          <option value="prywatne">🔴 Prywatne</option>
+          <option value="dp">🎬 DOP</option>
+          <option value="vns">📱 VNS</option>
+          <option value="projekty">📂 Projekty</option>
+          <option value="vibecoding">💻 Vibe</option>
+          <option value="fundacja">🏛️ Fundacja</option>
+          <option value="spotkania">🤝 Spotkania</option>
+        </select>
       </div>
       <div id="md-routine-opts" style="display:none;flex-direction:column;gap:8px">
         <div style="display:flex;flex-direction:column;gap:4px">
@@ -4844,16 +4869,27 @@ function renderDayView() {
       const timeStr = `${String(item.hour).padStart(2, '0')}:${String(min).padStart(2, '0')}`;
       const isRoutine = item.type === 'routine';
       const cls = `md-block ${isRoutine ? 'md-routine' : 'md-task'}${item.done ? ' md-done' : ''}`;
+      const proj = item.proj || '';
+      const projLabels = {prywatne:'Prywatne',dp:'DOP',vns:'VNS',projekty:'Projekty',vibecoding:'Vibe',fundacja:'Fundacja',spotkania:'Spotkania'};
+      const projBadge = proj ? `<span class="md-block-proj md-proj-${proj}">${projLabels[proj]||proj}</span>` : '';
 
-      html += `<div class="${cls}">
-        <div class="md-block-header">
-          <span class="md-block-time">${timeStr} · ${durLabel}</span>
-          <span class="md-block-type">${isRoutine ? '🔁' : '📌'}</span>
+      html += `<div class="${cls}" style="display:flex;gap:8px">
+        <div class="md-block-move">
+          <button class="md-btn-move" onclick="mdMoveItem('${item.id}','${item.type}',-1)" title="Wcześniej (−15min)">▲</button>
+          <button class="md-btn-move" onclick="mdMoveItem('${item.id}','${item.type}',1)" title="Później (+15min)">▼</button>
         </div>
-        <div class="md-block-text">${escHtml(item.text)}</div>
-        <div class="md-block-actions">
-          <button class="md-btn md-btn-done" onclick="mdToggleDone('${item.id}','${item.type}')">${item.done ? '✓ Zrobione' : '○ Zrób'}</button>
-          <button class="md-btn md-btn-del" onclick="mdDeleteItem('${item.id}','${item.type}')">✕</button>
+        <div style="flex:1;min-width:0">
+          <div class="md-block-header">
+            <span class="md-block-time">${timeStr} · ${durLabel}</span>
+            <span class="md-block-type">${isRoutine ? '🔁' : '📌'}</span>
+            ${projBadge}
+          </div>
+          <div class="md-block-text">${escHtml(item.text)}</div>
+          <div class="md-block-actions">
+            <button class="md-btn md-btn-done" onclick="mdToggleDone('${item.id}','${item.type}')">${item.done ? '✓ Zrobione' : '○ Zrób'}</button>
+            <button class="md-btn" onclick="mdSetItemNow('${item.id}','${item.type}')" title="Przesuń na bieżącą godzinę">🕐 Teraz</button>
+            <button class="md-btn md-btn-del" onclick="mdDeleteItem('${item.id}','${item.type}')">✕</button>
+          </div>
         </div>
       </div>`;
     });
@@ -4969,6 +5005,11 @@ function mdDeleteRoutineAll(id) {
   renderDayView();
 }
 
+function mdSetNow() {
+  const now = new Date();
+  document.getElementById('md-add-hour').value = now.getHours();
+  document.getElementById('md-add-min').value = Math.round(now.getMinutes() / 5) * 5 % 60;
+}
 function mdOpenAddModal(type) {
   const now = new Date();
   mdOpenAddAtHour(now.getHours(), type);
@@ -4978,11 +5019,12 @@ function mdOpenAddAtHour(hour, preType) {
   if (!modal) return;
   const type = preType || 'task';
   document.getElementById('md-modal-title').textContent = type === 'routine' ? '🔁 Nowa rutyna' : '📌 Nowe zadanie dnia';
-  document.getElementById('md-add-hour').value = String(hour).padStart(2, '0');
+  document.getElementById('md-add-hour').value = hour;
   document.getElementById('md-add-min').value = '0';
   document.getElementById('md-add-text').value = '';
   document.getElementById('md-add-dur').value = '30';
-  const typeSelector = document.createElement('input');
+  const projEl = document.getElementById('md-add-proj');
+  if (projEl) projEl.value = '';
   modal.dataset.addType = type;
   const routineOpts = document.getElementById('md-routine-opts');
   if (routineOpts) routineOpts.style.display = type === 'routine' ? 'flex' : 'none';
@@ -5004,6 +5046,7 @@ function mdSubmitAdd() {
   const hour = parseInt(document.getElementById('md-add-hour').value, 10) || 9;
   const minute = parseInt(document.getElementById('md-add-min').value, 10) || 0;
   const dur = parseInt(document.getElementById('md-add-dur').value, 10) || 30;
+  const proj = (document.getElementById('md-add-proj') || {}).value || '';
   const modal = document.getElementById('md-add-modal');
   const type = modal.dataset.addType || 'task';
   const id = 'md-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7);
@@ -5012,16 +5055,49 @@ function mdSubmitAdd() {
     const rec = document.getElementById('md-recurrence').value;
     const days = [];
     document.querySelectorAll('.md-day-cb:checked').forEach(cb => days.push(parseInt(cb.value, 10)));
-    mdRoutines.push({ id, text, hour, minute, durationMin: dur, recurrence: rec, days, startDate: mdDate, exceptions: [] });
+    mdRoutines.push({ id, text, hour, minute, durationMin: dur, proj, recurrence: rec, days, startDate: mdDate, exceptions: [] });
   } else {
     if (!mdDayTasks[mdDate]) mdDayTasks[mdDate] = [];
-    mdDayTasks[mdDate].push({ id, text, hour, minute, durationMin: dur, done: false, taskId: null });
+    mdDayTasks[mdDate].push({ id, text, hour, minute, durationMin: dur, proj, done: false, taskId: null });
   }
 
   mdSave();
   mdCloseAddModal();
   renderDayView();
   showToast(type === 'routine' ? '🔁 Rutyna dodana' : '📌 Zadanie dodane do dnia', false);
+}
+function mdMoveItem(id, type, dir) {
+  // dir: -1 = wcześniej 15min, +1 = później 15min
+  const adjust = (item) => {
+    let totalMin = item.hour * 60 + (item.minute || 0) + dir * 15;
+    totalMin = Math.max(5 * 60, Math.min(23 * 60 + 45, totalMin));
+    item.hour = Math.floor(totalMin / 60);
+    item.minute = totalMin % 60;
+  };
+  if (type === 'routine') {
+    const r = mdRoutines.find(r => r.id === id);
+    if (r) { adjust(r); mdSave(); }
+  } else {
+    const dayList = mdDayTasks[mdDate] || [];
+    const t = dayList.find(t => t.id === id);
+    if (t) { adjust(t); mdSave(); }
+  }
+  renderDayView();
+}
+function mdSetItemNow(id, type) {
+  const now = new Date();
+  const h = now.getHours();
+  const m = Math.round(now.getMinutes() / 5) * 5 % 60;
+  if (type === 'routine') {
+    const r = mdRoutines.find(r => r.id === id);
+    if (r) { r.hour = h; r.minute = m; mdSave(); }
+  } else {
+    const dayList = mdDayTasks[mdDate] || [];
+    const t = dayList.find(t => t.id === id);
+    if (t) { t.hour = h; t.minute = m; mdSave(); }
+  }
+  renderDayView();
+  showToast('🕐 Przesunięto na teraz', false);
 }
 // Close md-add-modal on overlay click
 document.addEventListener('click', e => {
