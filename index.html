@@ -862,6 +862,80 @@
   .tg-review-actions { display:flex; gap:4px; flex-shrink:0; }
   .tg-btn { background:none; border:1px solid var(--border); border-radius:6px; padding:3px 8px; cursor:pointer; font-size:14px; transition:background .15s; }
   .tg-btn:hover { background:var(--surface2); }
+
+  /* ════ MÓJ DZIEŃ ════ */
+  .md-nav { display:flex; align-items:center; gap:8px; margin-bottom:16px; background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:10px 14px; }
+  .md-nav-btn { background:var(--surface2); border:1px solid var(--border); border-radius:7px; color:var(--muted); font-size:14px; padding:4px 12px; cursor:pointer; transition:all .12s; font-family:inherit; }
+  .md-nav-btn:hover { border-color:var(--cyan); color:var(--text); }
+  .md-nav-btn.today { color:var(--cyan); border-color:rgba(57,208,200,.3); background:rgba(57,208,200,.08); }
+  .md-date-label { flex:1; text-align:center; font-size:14px; font-weight:700; color:var(--text); }
+  .md-add-toolbar { display:flex; gap:8px; margin-bottom:12px; }
+  .md-add-toolbar .md-btn-add { background:rgba(57,208,200,.1); border:1px solid rgba(57,208,200,.3); color:var(--cyan); border-radius:8px; padding:7px 14px; font-size:12px; font-weight:600; cursor:pointer; font-family:inherit; transition:all .15s; }
+  .md-add-toolbar .md-btn-add:hover { background:rgba(57,208,200,.2); }
+  .md-add-toolbar .md-btn-routine { background:rgba(63,185,80,.08); border:1px solid rgba(63,185,80,.3); color:var(--green); }
+  .md-add-toolbar .md-btn-routine:hover { background:rgba(63,185,80,.18); }
+  .md-timeline { display:flex; flex-direction:column; gap:2px; max-height:70vh; overflow-y:auto; padding-right:4px; scroll-behavior:smooth; }
+  .md-timeline::-webkit-scrollbar { width:4px; }
+  .md-timeline::-webkit-scrollbar-track { background:var(--surface2); border-radius:2px; }
+  .md-timeline::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+  .md-hour-row { display:flex; align-items:flex-start; gap:0; min-height:36px; }
+  .md-hour-row.has-items { min-height:auto; }
+  .md-hour-label { width:52px; flex-shrink:0; font-size:11px; font-weight:600; color:var(--border); font-family:'JetBrains Mono',monospace; padding:10px 8px 0 0; text-align:right; }
+  .md-hour-row.has-items .md-hour-label { color:var(--muted); }
+  .md-hour-content { flex:1; border-left:1px solid var(--border); padding:4px 0 4px 10px; display:flex; flex-direction:column; gap:4px; }
+  .md-hour-row.is-now .md-hour-label { color:var(--orange); }
+  .md-hour-row.is-now .md-hour-content { border-left-color:var(--orange); border-left-width:2px; }
+  .md-block { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:8px 10px; display:flex; flex-direction:column; gap:4px; transition:border-color .12s; }
+  .md-block:hover { border-color:var(--cyan); }
+  .md-routine { border-left:3px solid var(--green); background:rgba(63,185,80,.04); }
+  .md-task    { border-left:3px solid var(--blue);  background:rgba(88,166,255,.04); }
+  .md-done    { opacity:.55; }
+  .md-done .md-block-text { text-decoration:line-through; color:var(--muted); }
+  .md-block-header { display:flex; align-items:center; gap:6px; }
+  .md-block-time { font-size:10px; font-family:'JetBrains Mono',monospace; color:var(--muted); }
+  .md-block-type { font-size:11px; }
+  .md-block-text { font-size:12px; color:var(--text); line-height:1.4; }
+  .md-block-actions { display:flex; gap:4px; }
+  .md-btn { background:none; border:1px solid var(--border); border-radius:5px; color:var(--muted); font-size:11px; padding:2px 8px; cursor:pointer; font-family:inherit; transition:all .12s; }
+  .md-btn:hover { border-color:var(--cyan); color:var(--text); }
+  .md-btn-done { color:var(--green); border-color:rgba(63,185,80,.3); }
+  .md-btn-done:hover { background:rgba(63,185,80,.1); }
+  .md-btn-del:hover  { border-color:var(--red); color:var(--red); }
+  .md-add-slot { background:none; border:1px dashed var(--border); border-radius:5px; color:var(--border); font-size:11px; padding:3px 10px; cursor:pointer; font-family:inherit; align-self:flex-start; transition:all .12s; }
+  .md-add-slot:hover { border-color:var(--cyan); color:var(--cyan); }
+  /* Modal */
+  .md-modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:9999; display:flex; align-items:center; justify-content:center; }
+  .md-modal { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:22px 20px; width:min(420px,92vw); display:flex; flex-direction:column; gap:12px; max-height:90vh; overflow-y:auto; }
+  .md-modal-title { font-size:15px; font-weight:700; color:var(--text); }
+  .md-modal-text { font-size:12px; color:var(--text); }
+  .md-modal input, .md-modal select { background:var(--bg); border:1px solid var(--border); color:var(--text); border-radius:7px; padding:7px 10px; font-size:13px; font-family:inherit; outline:none; width:100%; box-sizing:border-box; }
+  .md-modal input:focus, .md-modal select:focus { border-color:var(--cyan); }
+  .md-modal label { font-size:11px; color:var(--muted); }
+  .md-modal-row { display:flex; gap:8px; }
+  .md-modal-row input, .md-modal-row select { flex:1; }
+  .md-modal-actions { display:flex; gap:8px; flex-wrap:wrap; }
+  .md-modal-btn { flex:1; background:var(--surface2); border:1px solid var(--border); color:var(--text); border-radius:8px; padding:8px 14px; font-size:12px; font-weight:600; cursor:pointer; font-family:inherit; transition:all .12s; }
+  .md-modal-btn:hover { border-color:var(--cyan); color:var(--cyan); }
+  .md-modal-btn-primary { background:rgba(57,208,200,.15); border-color:rgba(57,208,200,.4); color:var(--cyan); }
+  .md-modal-btn-primary:hover { background:rgba(57,208,200,.25); }
+  .md-modal-btn-danger { background:rgba(248,81,73,.1); border-color:rgba(248,81,73,.3); color:var(--red); }
+  .md-modal-btn-danger:hover { background:rgba(248,81,73,.2); }
+  .md-modal-btn-cancel { background:none; border-color:var(--border); color:var(--muted); }
+  .md-days-row { display:flex; gap:4px; flex-wrap:wrap; margin-top:4px; }
+  .md-day-label { display:flex; align-items:center; gap:3px; background:var(--surface2); border:1px solid var(--border); border-radius:5px; padding:3px 7px; font-size:11px; color:var(--muted); cursor:pointer; user-select:none; transition:all .12s; }
+  .md-day-label input { width:auto; padding:0; border:none; background:none; }
+  .md-day-label:has(input:checked) { border-color:var(--green); color:var(--green); background:rgba(63,185,80,.1); }
+
+  /* ════ TIMER ════ */
+  .btn-timer-start { display:none; background:none; border:none; cursor:pointer; font-size:12px; padding:0 3px; flex-shrink:0; color:var(--border); transition:color .12s; }
+  .item:hover .btn-timer-start { display:block; color:var(--muted); }
+  .btn-timer-start:hover { color:var(--green) !important; }
+  .btn-timer-stop { background:rgba(248,81,73,.12); border:1px solid rgba(248,81,73,.3); color:var(--red); border-radius:5px; padding:1px 6px; font-size:11px; cursor:pointer; flex-shrink:0; }
+  .btn-timer-stop:hover { background:rgba(248,81,73,.22); }
+  .timer-badge { font-size:11px; font-family:'JetBrains Mono',monospace; color:var(--orange); background:rgba(230,126,34,.12); border:1px solid rgba(230,126,34,.25); border-radius:5px; padding:1px 6px; flex-shrink:0; }
+  .timer-est { font-size:10px; color:var(--muted); cursor:pointer; border:1px dashed var(--border); border-radius:4px; padding:0 5px; margin-right:2px; }
+  .timer-est:hover { border-color:var(--muted); color:var(--text); }
+  .timer-total { font-size:10px; color:var(--muted); font-family:'JetBrains Mono',monospace; }
 </style>
 </head>
 <body>
@@ -878,6 +952,7 @@
     <button class="proj-tab" onclick="switchProject('spotkania')" id="pt-spotkania" style="color:var(--purple)">🤝 Spotkania</button>
     <button class="proj-tab" onclick="switchProject('cykliczne')" id="pt-cykliczne" style="color:var(--green)">🔁 Cykliczne</button>
     <button class="proj-tab" onclick="switchProject('fundacja')" id="pt-fundacja" style="color:#e8c547">🏛️ Fundacja</button>
+    <button class="proj-tab" onclick="switchProject('mojdzien')" id="pt-mojdzien" style="color:var(--orange)">🗓 Mój Dzień</button>
   </div>
 
   <div class="header">
@@ -977,6 +1052,85 @@
   </div>
 
   <div id="sections-wrap"></div>
+
+  <!-- ═══ MÓJ DZIEŃ ═══ -->
+  <div id="moj-dzien-panel" style="display:none">
+    <div class="md-nav">
+      <button class="md-nav-btn" onclick="mdPrevDay()">‹</button>
+      <span class="md-date-label" id="md-date-label">—</span>
+      <button class="md-nav-btn" onclick="mdNextDay()">›</button>
+      <button class="md-nav-btn today" onclick="mdGoToday()">Dziś</button>
+    </div>
+    <div class="md-add-toolbar">
+      <button class="md-btn-add" onclick="mdOpenAddModal('task')">📌 Dodaj zadanie dnia</button>
+      <button class="md-btn-add md-btn-routine" onclick="mdOpenAddModal('routine')">🔁 Dodaj rutynę</button>
+    </div>
+    <div class="md-timeline" id="md-timeline"></div>
+  </div>
+
+  <!-- Modal: dodaj rutynę / zadanie -->
+  <div id="md-add-modal" style="display:none" class="md-modal-overlay">
+    <div class="md-modal">
+      <div class="md-modal-title" id="md-modal-title">📌 Nowe zadanie dnia</div>
+      <input id="md-add-text" type="text" placeholder="Co chcesz zrobić?" onkeydown="if(event.key==='Enter')mdSubmitAdd()">
+      <div class="md-modal-row">
+        <div style="display:flex;flex-direction:column;gap:4px;flex:1">
+          <label>Godzina</label>
+          <input id="md-add-hour" type="number" min="4" max="23" value="9" style="width:100%">
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px;flex:1">
+          <label>Minuta</label>
+          <select id="md-add-min" style="width:100%">
+            <option value="0">:00</option>
+            <option value="15">:15</option>
+            <option value="30">:30</option>
+            <option value="45">:45</option>
+          </select>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px;flex:2">
+          <label>Czas trwania</label>
+          <select id="md-add-dur">
+            <option value="10">10 min</option>
+            <option value="15">15 min</option>
+            <option value="20">20 min</option>
+            <option value="30" selected>30 min</option>
+            <option value="45">45 min</option>
+            <option value="60">1 godz</option>
+            <option value="90">1.5 godz</option>
+            <option value="120">2 godz</option>
+            <option value="180">3 godz</option>
+          </select>
+        </div>
+      </div>
+      <div id="md-routine-opts" style="display:none;flex-direction:column;gap:8px">
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <label>Powtarzanie</label>
+          <select id="md-recurrence" onchange="mdOnRecurrenceChange()">
+            <option value="daily">Codziennie</option>
+            <option value="weekdays">Dni robocze (Pn–Pt)</option>
+            <option value="weekends">Weekendy (Sb–Nd)</option>
+            <option value="custom">Wybrane dni…</option>
+          </select>
+        </div>
+        <div id="md-custom-days" style="display:none">
+          <label>Dni tygodnia:</label>
+          <div class="md-days-row">
+            <label class="md-day-label"><input type="checkbox" class="md-day-cb" value="1"> Pn</label>
+            <label class="md-day-label"><input type="checkbox" class="md-day-cb" value="2"> Wt</label>
+            <label class="md-day-label"><input type="checkbox" class="md-day-cb" value="3"> Śr</label>
+            <label class="md-day-label"><input type="checkbox" class="md-day-cb" value="4"> Cz</label>
+            <label class="md-day-label"><input type="checkbox" class="md-day-cb" value="5"> Pt</label>
+            <label class="md-day-label"><input type="checkbox" class="md-day-cb" value="6"> Sb</label>
+            <label class="md-day-label"><input type="checkbox" class="md-day-cb" value="0"> Nd</label>
+          </div>
+        </div>
+      </div>
+      <div class="md-modal-actions">
+        <button class="md-modal-btn md-modal-btn-cancel" onclick="mdCloseAddModal()">Anuluj</button>
+        <button class="md-modal-btn md-modal-btn-primary" onclick="mdSubmitAdd()">Dodaj</button>
+      </div>
+    </div>
+  </div>
 
   <div class="log-panel lp-col" id="log-panel">
     <div class="log-hd" onclick="toggleLogPanel()">
@@ -2710,6 +2864,7 @@ function makeItem(item, num, isChildView = false) {
       ${(() => { const projKey = item.cat || (activeProject !== 'general' ? activeProject : null) || item._project; return projKey ? `<span class="badge-cat cat-${projKey}" onclick="event.stopPropagation();showMoveMenu('${item.id}',event)" title="Zmień projekt">${catLabels[projKey]||projKey}</span>` : ''; })()}
     </div>
     <button class="btn-progress-item ${item.inProgress?'is-active':''}" onclick="event.stopPropagation();toggleInProgress('${item.id}')" title="${item.inProgress?'Usuń W trakcie':'Oznacz jako W trakcie'}">⏳</button>
+    ${(() => { const td = timerLoad(); const isAct = td.activeId === item.id; const est = td.estimates && td.estimates[item.id]; const total = timerGetTotal(item.id); if (isAct) { const ms = td.startedAt ? Date.now() - new Date(td.startedAt).getTime() : 0; return `<span class="timer-badge" data-timerid="${item.id}">⏱ ${timerFmtMs(ms)}</span><button class="btn-timer-stop" onclick="event.stopPropagation();timerStop()" title="Stop timera">⏹</button>`; } return `${est ? `<span class="timer-est" onclick="timerEstimate('${item.id}',event)" title="Zmień szacunek czasowy">${est}min</span>` : ''}${total ? `<span class="timer-total" title="Łącznie: ${timerFmtMs(total)}">${timerFmtMs(total)}</span>` : ''}<button class="btn-timer-start" onclick="event.stopPropagation();timerStart('${item.id}')" title="Start timera · Shift+klik = ustaw szacunek">▶</button>`; })()}
     <button class="btn-note-item ${(hasNote||hasSubtasks||hasChildren)?'has-note':''}" onclick="event.stopPropagation();toggleNote('${item.id}')" title="${noteOpen?'Schowaj':'Rozwiń'}">📝</button>
     <button class="btn-date-item"   onclick="event.stopPropagation();showDateMenu('${item.id}',event)" title="Dodaj datę">📅</button>
     ${isChild ? `<button class="btn-promote" onclick="event.stopPropagation();promoteItem('${item.id}')" title="Przenieś na główny poziom">↑ wyżej</button>` : ''}
@@ -4058,6 +4213,40 @@ function switchProject(pid) {
   activeProject = pid;
   projectsSubView = null;
 
+  // Handle "Mój Dzień" special tab
+  const mdPanel = document.getElementById('moj-dzien-panel');
+  const sectionsWrap = document.getElementById('sections-wrap');
+  const logPanel = document.getElementById('log-panel');
+  if (pid === 'mojdzien') {
+    if (mdPanel) mdPanel.style.display = '';
+    if (sectionsWrap) sectionsWrap.style.display = 'none';
+    if (logPanel) logPanel.style.display = 'none';
+    const filterBar = document.querySelector('.filter-bar');
+    const actionsBar = document.querySelector('.actions');
+    const overviewEl = document.querySelector('.overview');
+    const progressEl = document.querySelector('.main-progress');
+    if (filterBar)  filterBar.style.display = 'none';
+    if (actionsBar) actionsBar.style.display = 'none';
+    if (overviewEl) overviewEl.style.display = 'none';
+    if (progressEl) progressEl.style.display = 'none';
+    document.querySelectorAll('.proj-tab').forEach(t => t.classList.remove('active'));
+    const tabEl = document.getElementById('pt-mojdzien');
+    if (tabEl) tabEl.classList.add('active');
+    document.getElementById('proj-title').textContent = '🗓 Mój Dzień';
+    mdLoad();
+    renderDayView();
+    return;
+  }
+
+  // Leaving mojdzien — restore hidden elements
+  if (mdPanel) mdPanel.style.display = 'none';
+  if (sectionsWrap) sectionsWrap.style.display = '';
+  if (logPanel) logPanel.style.display = '';
+  const overviewEl2 = document.querySelector('.overview');
+  const progressEl2 = document.querySelector('.main-progress');
+  if (overviewEl2) overviewEl2.style.display = '';
+  if (progressEl2) progressEl2.style.display = '';
+
   const allowedSecs1 = SECTIONS_BY_PROJECT[pid] || ['todo','ai','pawel','done'];
   sections = SECTIONS_DEF.filter(s => allowedSecs1.includes(s.id)).map(s => JSON.parse(JSON.stringify(s)));
   Object.assign(QUADS_COLLAPSED,     { q1:false, q2:false, q3:true, q4:true });
@@ -4480,6 +4669,365 @@ function submitAddSubProject() {
   renderProjectsView();
 }
 loadCustomSubProjects();
+
+// ════════════════════════════════════════
+//  TIMER
+// ════════════════════════════════════════
+let timerInterval = null;
+
+function timerLoad() {
+  try { return JSON.parse(localStorage.getItem('ai-timer') || '{}'); } catch(e) { return {}; }
+}
+function timerSave(data) {
+  localStorage.setItem('ai-timer', JSON.stringify(data));
+}
+function timerFmtMs(ms) {
+  const s = Math.floor(ms / 1000);
+  const hh = Math.floor(s / 3600);
+  const mm = Math.floor((s % 3600) / 60);
+  const ss = s % 60;
+  if (hh > 0) return `${hh}:${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
+  return `${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
+}
+function timerGetTotal(itemId) {
+  const t = timerLoad();
+  const history = (t.history || {})[itemId] || [];
+  if (!history.length) return 0;
+  return history.reduce((sum, h) => sum + (h.elapsed || 0), 0);
+}
+function timerStart(itemId) {
+  const t = timerLoad();
+  if (t.activeId && t.activeId !== itemId) {
+    // Stop existing timer first
+    const elapsed = t.startedAt ? Date.now() - new Date(t.startedAt).getTime() : 0;
+    if (!t.history) t.history = {};
+    if (!t.history[t.activeId]) t.history[t.activeId] = [];
+    if (elapsed > 2000) t.history[t.activeId].push({ start: t.startedAt, end: new Date().toISOString(), elapsed });
+  }
+  t.activeId = itemId;
+  t.startedAt = new Date().toISOString();
+  timerSave(t);
+  if (timerInterval) clearInterval(timerInterval);
+  timerInterval = setInterval(timerTickUI, 1000);
+  render();
+  showToast('⏱ Timer wystartował', false);
+}
+function timerStop() {
+  const t = timerLoad();
+  if (!t.activeId) return;
+  const elapsed = t.startedAt ? Date.now() - new Date(t.startedAt).getTime() : 0;
+  if (!t.history) t.history = {};
+  if (!t.history[t.activeId]) t.history[t.activeId] = [];
+  t.history[t.activeId].push({ start: t.startedAt, end: new Date().toISOString(), elapsed });
+  const totalMs = timerGetTotal(t.activeId) + elapsed;
+  const wasId = t.activeId;
+  t.activeId = null;
+  t.startedAt = null;
+  timerSave(t);
+  if (timerInterval) clearInterval(timerInterval);
+  timerInterval = null;
+  render();
+  showToast(`⏹ Stop · ${timerFmtMs(elapsed)} · łącznie ${timerFmtMs(totalMs)}`, false);
+}
+function timerTickUI() {
+  const t = timerLoad();
+  if (!t.activeId || !t.startedAt) return;
+  const ms = Date.now() - new Date(t.startedAt).getTime();
+  document.querySelectorAll(`.timer-badge[data-timerid="${t.activeId}"]`).forEach(el => {
+    el.textContent = '⏱ ' + timerFmtMs(ms);
+  });
+}
+function timerEstimate(itemId, evt) {
+  evt && evt.stopPropagation();
+  const t = timerLoad();
+  const cur = (t.estimates || {})[itemId] || '';
+  const val = prompt(`Szacowany czas zadania (minuty):`, cur);
+  if (val === null) return;
+  const mins = parseInt(val, 10);
+  if (!t.estimates) t.estimates = {};
+  if (!isNaN(mins) && mins > 0) t.estimates[itemId] = mins;
+  else delete t.estimates[itemId];
+  timerSave(t);
+  render();
+}
+function timerInit() {
+  const t = timerLoad();
+  if (t.activeId && t.startedAt) {
+    if (timerInterval) clearInterval(timerInterval);
+    timerInterval = setInterval(timerTickUI, 1000);
+  }
+}
+timerInit();
+
+// ════════════════════════════════════════
+//  MÓJ DZIEŃ
+// ════════════════════════════════════════
+let mdDate = todayISO ? todayISO() : new Date().toISOString().split('T')[0];
+let mdRoutines = [];
+let mdDayTasks = {};
+
+function mdLoad() {
+  try { mdRoutines = JSON.parse(localStorage.getItem('ai-dzien-routines') || '[]'); } catch(e) { mdRoutines = []; }
+  try { mdDayTasks = JSON.parse(localStorage.getItem('ai-dzien-tasks') || '{}'); } catch(e) { mdDayTasks = {}; }
+}
+
+function mdSave() {
+  localStorage.setItem('ai-dzien-routines', JSON.stringify(mdRoutines));
+  localStorage.setItem('ai-dzien-tasks', JSON.stringify(mdDayTasks));
+}
+
+function mdGetItemsForDate(dateStr) {
+  const date = new Date(dateStr + 'T12:00:00');
+  const dow = date.getDay(); // 0=Sun
+  const result = [];
+
+  mdRoutines.forEach(r => {
+    if (r.startDate && r.startDate > dateStr) return;
+    if (r.endDate && r.endDate < dateStr) return;
+    const exc = r.exceptions || [];
+    if (exc.includes(dateStr)) return;
+
+    let applies = false;
+    if (r.recurrence === 'daily')    applies = true;
+    else if (r.recurrence === 'weekdays') applies = dow >= 1 && dow <= 5;
+    else if (r.recurrence === 'weekends') applies = dow === 0 || dow === 6;
+    else if (r.recurrence === 'custom')   applies = Array.isArray(r.days) && r.days.map(Number).includes(dow);
+
+    if (applies) {
+      const doneKey = `md-done-${r.id}-${dateStr}`;
+      const done = localStorage.getItem(doneKey) === '1';
+      result.push({ ...r, type: 'routine', done, _doneKey: doneKey });
+    }
+  });
+
+  const dayTasks = mdDayTasks[dateStr] || [];
+  dayTasks.forEach(t => result.push({ ...t, type: 'task' }));
+
+  return result.sort((a, b) => (a.hour * 60 + (a.minute || 0)) - (b.hour * 60 + (b.minute || 0)));
+}
+
+function renderDayView() {
+  const mdPanel = document.getElementById('moj-dzien-panel');
+  if (!mdPanel || mdPanel.style.display === 'none') return;
+
+  const dayNames = ['Niedziela','Poniedziałek','Wtorek','Środa','Czwartek','Piątek','Sobota'];
+  const date = new Date(mdDate + 'T12:00:00');
+  const [y, m, d] = mdDate.split('-');
+  const todayStr = (todayISO ? todayISO() : new Date().toISOString().split('T')[0]);
+  const isToday = mdDate === todayStr;
+  const lbl = document.getElementById('md-date-label');
+  if (lbl) lbl.textContent = `${isToday ? 'Dziś · ' : ''}${dayNames[date.getDay()]}, ${d}.${m}.${y}`;
+
+  const allItems = mdGetItemsForDate(mdDate);
+  const timeline = document.getElementById('md-timeline');
+  if (!timeline) return;
+
+  const nowHour = new Date().getHours();
+  let html = '';
+
+  for (let hour = 5; hour <= 23; hour++) {
+    const hourItems = allItems.filter(i => i.hour === hour);
+    const hasItems = hourItems.length > 0;
+    const isNow = isToday && hour === nowHour;
+    const hStr = String(hour).padStart(2, '0') + ':00';
+
+    html += `<div class="md-hour-row${hasItems ? ' has-items' : ''}${isNow ? ' is-now' : ''}" data-hour="${hour}">`;
+    html += `<div class="md-hour-label">${hStr}</div>`;
+    html += `<div class="md-hour-content">`;
+
+    hourItems.forEach(item => {
+      const dur = item.durationMin || 30;
+      const durLabel = dur >= 60
+        ? `${Math.floor(dur / 60)}h${dur % 60 ? dur % 60 + 'min' : ''}`
+        : `${dur}min`;
+      const min = item.minute || 0;
+      const timeStr = `${String(item.hour).padStart(2, '0')}:${String(min).padStart(2, '0')}`;
+      const isRoutine = item.type === 'routine';
+      const cls = `md-block ${isRoutine ? 'md-routine' : 'md-task'}${item.done ? ' md-done' : ''}`;
+
+      html += `<div class="${cls}">
+        <div class="md-block-header">
+          <span class="md-block-time">${timeStr} · ${durLabel}</span>
+          <span class="md-block-type">${isRoutine ? '🔁' : '📌'}</span>
+        </div>
+        <div class="md-block-text">${escHtml(item.text)}</div>
+        <div class="md-block-actions">
+          <button class="md-btn md-btn-done" onclick="mdToggleDone('${item.id}','${item.type}')">${item.done ? '✓ Zrobione' : '○ Zrób'}</button>
+          <button class="md-btn md-btn-del" onclick="mdDeleteItem('${item.id}','${item.type}')">✕</button>
+        </div>
+      </div>`;
+    });
+
+    html += `<button class="md-add-slot" onclick="mdOpenAddAtHour(${hour})">⊕ Dodaj</button>`;
+    html += `</div></div>`;
+  }
+
+  timeline.innerHTML = html;
+
+  if (isToday) {
+    const targetHour = Math.max(5, Math.min(23, nowHour));
+    const rows = timeline.querySelectorAll('.md-hour-row');
+    const targetRow = rows[targetHour - 5];
+    if (targetRow) setTimeout(() => targetRow.scrollIntoView({ behavior: 'smooth', block: 'center' }), 80);
+  }
+}
+
+function mdPrevDay() {
+  const d = new Date(mdDate + 'T12:00:00');
+  d.setDate(d.getDate() - 1);
+  mdDate = d.toISOString().split('T')[0];
+  renderDayView();
+}
+function mdNextDay() {
+  const d = new Date(mdDate + 'T12:00:00');
+  d.setDate(d.getDate() + 1);
+  mdDate = d.toISOString().split('T')[0];
+  renderDayView();
+}
+function mdGoToday() {
+  mdDate = todayISO ? todayISO() : new Date().toISOString().split('T')[0];
+  renderDayView();
+}
+
+function mdToggleDone(id, type) {
+  if (type === 'routine') {
+    const routine = mdRoutines.find(r => r.id === id);
+    if (!routine) return;
+    const doneKey = `md-done-${id}-${mdDate}`;
+    const isDone = localStorage.getItem(doneKey) === '1';
+    localStorage.setItem(doneKey, isDone ? '0' : '1');
+    if (routine.taskId) {
+      const mainItem = items.find(i => i.id === routine.taskId);
+      if (mainItem) { mainItem.checked = !isDone; if (!isDone) { mainItem.sec = 'done'; mainItem.completedAt = new Date().toISOString(); } autoSave(); }
+    }
+  } else {
+    const dayList = mdDayTasks[mdDate] || [];
+    const task = dayList.find(t => t.id === id);
+    if (!task) return;
+    task.done = !task.done;
+    mdSave();
+    if (task.taskId) {
+      const mainItem = items.find(i => i.id === task.taskId);
+      if (mainItem) { mainItem.checked = task.done; if (task.done) { mainItem.sec = 'done'; mainItem.completedAt = new Date().toISOString(); } autoSave(); }
+    }
+  }
+  renderDayView();
+}
+
+function mdDeleteItem(id, type) {
+  if (type === 'routine') {
+    mdOpenDeleteRoutineDialog(id);
+  } else {
+    const dayList = mdDayTasks[mdDate] || [];
+    mdDayTasks[mdDate] = dayList.filter(t => t.id !== id);
+    mdSave();
+    renderDayView();
+  }
+}
+
+function mdOpenDeleteRoutineDialog(id) {
+  const routine = mdRoutines.find(r => r.id === id);
+  if (!routine) return;
+  const overlay = document.createElement('div');
+  overlay.className = 'md-modal-overlay';
+  overlay.innerHTML = `
+    <div class="md-modal">
+      <div class="md-modal-title">🔁 Usuń rutynę</div>
+      <div class="md-modal-text">„${escHtml(routine.text)}"</div>
+      <div class="md-modal-text" style="font-size:11px;color:var(--muted);margin-top:2px">Co chcesz usunąć?</div>
+      <div class="md-modal-actions" style="flex-direction:column;gap:6px;margin-top:4px">
+        <button class="md-modal-btn" onclick="mdDeleteRoutineToday('${id}');this.closest('.md-modal-overlay').remove()">📅 Tylko dziś (wyjątek)</button>
+        <button class="md-modal-btn" onclick="mdDeleteRoutineFromNow('${id}');this.closest('.md-modal-overlay').remove()">⏩ Od dziś w przód</button>
+        <button class="md-modal-btn md-modal-btn-danger" onclick="mdDeleteRoutineAll('${id}');this.closest('.md-modal-overlay').remove()">🗑 Usuń wszystkie</button>
+        <button class="md-modal-btn md-modal-btn-cancel" onclick="this.closest('.md-modal-overlay').remove()">Anuluj</button>
+      </div>
+    </div>`;
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
+}
+
+function mdDeleteRoutineToday(id) {
+  const r = mdRoutines.find(r => r.id === id);
+  if (!r) return;
+  if (!r.exceptions) r.exceptions = [];
+  if (!r.exceptions.includes(mdDate)) r.exceptions.push(mdDate);
+  mdSave();
+  renderDayView();
+}
+function mdDeleteRoutineFromNow(id) {
+  const r = mdRoutines.find(r => r.id === id);
+  if (!r) return;
+  const prev = new Date(mdDate + 'T12:00:00');
+  prev.setDate(prev.getDate() - 1);
+  r.endDate = prev.toISOString().split('T')[0];
+  mdSave();
+  renderDayView();
+}
+function mdDeleteRoutineAll(id) {
+  mdRoutines = mdRoutines.filter(r => r.id !== id);
+  mdSave();
+  renderDayView();
+}
+
+function mdOpenAddModal(type) {
+  const now = new Date();
+  mdOpenAddAtHour(now.getHours(), type);
+}
+function mdOpenAddAtHour(hour, preType) {
+  const modal = document.getElementById('md-add-modal');
+  if (!modal) return;
+  const type = preType || 'task';
+  document.getElementById('md-modal-title').textContent = type === 'routine' ? '🔁 Nowa rutyna' : '📌 Nowe zadanie dnia';
+  document.getElementById('md-add-hour').value = String(hour).padStart(2, '0');
+  document.getElementById('md-add-min').value = '0';
+  document.getElementById('md-add-text').value = '';
+  document.getElementById('md-add-dur').value = '30';
+  const typeSelector = document.createElement('input');
+  modal.dataset.addType = type;
+  const routineOpts = document.getElementById('md-routine-opts');
+  if (routineOpts) routineOpts.style.display = type === 'routine' ? 'flex' : 'none';
+  modal.style.display = 'flex';
+  setTimeout(() => document.getElementById('md-add-text').focus(), 80);
+}
+function mdCloseAddModal() {
+  const modal = document.getElementById('md-add-modal');
+  if (modal) modal.style.display = 'none';
+}
+function mdOnRecurrenceChange() {
+  const rec = document.getElementById('md-recurrence').value;
+  const customDays = document.getElementById('md-custom-days');
+  if (customDays) customDays.style.display = rec === 'custom' ? 'block' : 'none';
+}
+function mdSubmitAdd() {
+  const text = (document.getElementById('md-add-text').value || '').trim();
+  if (!text) { document.getElementById('md-add-text').focus(); return; }
+  const hour = parseInt(document.getElementById('md-add-hour').value, 10) || 9;
+  const minute = parseInt(document.getElementById('md-add-min').value, 10) || 0;
+  const dur = parseInt(document.getElementById('md-add-dur').value, 10) || 30;
+  const modal = document.getElementById('md-add-modal');
+  const type = modal.dataset.addType || 'task';
+  const id = 'md-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7);
+
+  if (type === 'routine') {
+    const rec = document.getElementById('md-recurrence').value;
+    const days = [];
+    document.querySelectorAll('.md-day-cb:checked').forEach(cb => days.push(parseInt(cb.value, 10)));
+    mdRoutines.push({ id, text, hour, minute, durationMin: dur, recurrence: rec, days, startDate: mdDate, exceptions: [] });
+  } else {
+    if (!mdDayTasks[mdDate]) mdDayTasks[mdDate] = [];
+    mdDayTasks[mdDate].push({ id, text, hour, minute, durationMin: dur, done: false, taskId: null });
+  }
+
+  mdSave();
+  mdCloseAddModal();
+  renderDayView();
+  showToast(type === 'routine' ? '🔁 Rutyna dodana' : '📌 Zadanie dodane do dnia', false);
+}
+// Close md-add-modal on overlay click
+document.addEventListener('click', e => {
+  const modal = document.getElementById('md-add-modal');
+  if (modal && e.target === modal) mdCloseAddModal();
+});
 </script>
 </body>
 </html>
