@@ -5023,7 +5023,7 @@ function mdFmtElapsed(ms) {
 function renderDayView() {
   const mdPanel = document.getElementById('moj-dzien-panel');
   if (!mdPanel || mdPanel.style.display === 'none') return;
-  if (mdViewMode === 'week') { renderWeekView(); return; }
+  if (mdViewMode === 'week') { renderMDWeekView(); return; }
 
   const dayNames = ['Niedziela','Poniedziałek','Wtorek','Środa','Czwartek','Piątek','Sobota'];
   const date = new Date(mdDate + 'T12:00:00');
@@ -5192,7 +5192,7 @@ function renderDayView() {
 }
 
 // ── Week view ──
-function renderWeekView() {
+function renderMDWeekView() {
   const content = document.getElementById('md-main-content');
   if (!content) return;
   const lbl = document.getElementById('md-date-label');
@@ -5240,7 +5240,7 @@ function mdGoToDate(dateStr) {
   if (btn) { btn.textContent = '📅 Tydzień'; btn.classList.remove('active-view'); }
   const toolbar = document.getElementById('md-add-toolbar');
   if (toolbar) toolbar.style.display = '';
-  renderDayView();
+  renderDayView(); // renderDayView handles mode dispatch
 }
 
 function mdToggleView() {
