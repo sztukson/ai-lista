@@ -875,6 +875,18 @@
   .md-add-toolbar .md-btn-add:hover { background:rgba(57,208,200,.2); }
   .md-add-toolbar .md-btn-routine { background:rgba(63,185,80,.08); border:1px solid rgba(63,185,80,.3); color:var(--green); }
   .md-add-toolbar .md-btn-routine:hover { background:rgba(63,185,80,.18); }
+  .md-add-toolbar .md-btn-fromlist { background:rgba(188,140,255,.08); border:1px solid rgba(188,140,255,.3); color:var(--purple); }
+  .md-add-toolbar .md-btn-fromlist:hover { background:rgba(188,140,255,.18); }
+  .md-fromlist-proj-tabs { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px; }
+  .md-fromlist-tab { background:var(--surface2); border:1px solid var(--border); border-radius:6px; color:var(--muted); font-size:11px; font-weight:600; padding:4px 10px; cursor:pointer; font-family:inherit; transition:all .12s; }
+  .md-fromlist-tab.active { border-color:var(--cyan); color:var(--cyan); background:rgba(57,208,200,.1); }
+  .md-fromlist-list { display:flex; flex-direction:column; gap:4px; max-height:220px; overflow-y:auto; margin-bottom:8px; }
+  .md-fromlist-item { display:flex; align-items:center; gap:8px; padding:6px 8px; border:1px solid var(--border); border-radius:6px; font-size:12px; cursor:pointer; transition:all .12s; }
+  .md-fromlist-item:hover { border-color:var(--cyan); background:rgba(57,208,200,.06); }
+  .md-fromlist-item.selected { border-color:var(--cyan); background:rgba(57,208,200,.12); }
+  .md-fromlist-item-text { flex:1; color:var(--text); }
+  .md-fromlist-item-proj { font-size:10px; font-weight:700; padding:1px 5px; border-radius:4px; }
+  .md-fromlist-empty { color:var(--muted); font-size:12px; text-align:center; padding:16px; }
 
   /* Unscheduled / overdue sections */
   .md-section { background:var(--surface); border:1px solid var(--border); border-radius:10px; margin-bottom:10px; overflow:hidden; }
@@ -895,7 +907,7 @@
   .md-timeline-wrap::-webkit-scrollbar { width:4px; }
   .md-timeline-wrap::-webkit-scrollbar-track { background:var(--surface2); }
   .md-timeline-wrap::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
-  .md-canvas-outer { display:flex; }
+  .md-canvas-outer { display:flex; padding-top:20px; }
   .md-labels-col { width:52px; flex-shrink:0; position:relative; }
   .md-canvas { position:relative; flex:1; min-width:0; }
   .md-hour-label-abs { position:absolute; right:6px; font-size:11px; font-weight:700; color:var(--muted); font-family:'JetBrains Mono',monospace; text-align:right; transform:translateY(-50%); pointer-events:none; letter-spacing:-.3px; white-space:nowrap; }
@@ -1119,6 +1131,7 @@
     <div class="md-add-toolbar" id="md-add-toolbar">
       <button class="md-btn-add" onclick="mdOpenAddModal('task')">📌 Dodaj zadanie dnia</button>
       <button class="md-btn-add md-btn-routine" onclick="mdOpenAddModal('routine')">🔁 Dodaj rutynę</button>
+      <button class="md-btn-add md-btn-fromlist" onclick="mdOpenFromListModal()">📋 Dodaj z listy</button>
     </div>
     <div id="md-main-content"></div>
   </div>
@@ -5600,6 +5613,151 @@ document.addEventListener('click', e => {
   const modal = document.getElementById('md-add-modal');
   if (modal && e.target === modal) mdCloseAddModal();
 });
+
+// ── Dodaj z listy ──
+const MD_FROMLIST_PROJS = [
+  { key: 'general',   label: '📋 Wszystkie', color: 'var(--cyan)' },
+  { key: 'prywatne',  label: '🔴 Prywatne',  color: 'var(--red)' },
+  { key: 'dp',        label: '🎬 DOP',        color: 'var(--blue)' },
+  { key: 'vns',       label: '📱 VNS',        color: 'var(--orange)' },
+  { key: 'projekty',  label: '📂 Projekty',   color: 'var(--purple)' },
+  { key: 'vibecoding',label: '💻 Vibe',       color: 'var(--purple)' },
+  { key: 'fundacja',  label: '🏛️ Fundacja',   color: '#e8c547' },
+];
+let mdFromListProjKey = 'general';
+let mdFromListSelected = null;
+let mdFromListCache = {}; // {projKey: items[]}
+
+function mdOpenFromListModal() {
+  const overlay = document.createElement('div');
+  overlay.className = 'md-modal-overlay';
+  overlay.id = 'md-fromlist-overlay';
+  overlay.innerHTML = `<div class="md-modal" style="width:min(500px,95vw)">
+    <div class="md-modal-title">📋 Dodaj zadanie z listy</div>
+    <div class="md-fromlist-proj-tabs" id="mfl-tabs"></div>
+    <div class="md-fromlist-list" id="mfl-items"><div class="md-fromlist-empty">Ładowanie…</div></div>
+    <div style="display:flex;flex-direction:column;gap:6px" id="mfl-time-row" style="display:none">
+      <label style="font-size:11px;color:var(--muted)">Godzina na osi czasu</label>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input id="mfl-hour" type="number" min="4" max="23" style="width:70px;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:6px 8px;color:var(--text);font-family:inherit;font-size:13px">
+        <span style="color:var(--muted)">:</span>
+        <input id="mfl-min" type="number" min="0" max="59" style="width:70px;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:6px 8px;color:var(--text);font-family:inherit;font-size:13px">
+        <button class="md-modal-btn" style="flex:none;font-size:11px;padding:6px 10px" onclick="mdFromListSetNow()">🕐 Teraz</button>
+        <input id="mfl-dur" type="number" min="15" max="480" value="30" style="width:70px;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:6px 8px;color:var(--text);font-family:inherit;font-size:13px">
+        <span style="font-size:11px;color:var(--muted)">min</span>
+      </div>
+    </div>
+    <div class="md-modal-actions" style="margin-top:4px">
+      <button class="md-modal-btn md-modal-btn-cancel" onclick="document.getElementById('md-fromlist-overlay').remove()">Anuluj</button>
+      <button class="md-modal-btn md-modal-btn-primary" id="mfl-add-btn" onclick="mdFromListSubmit()" disabled>Dodaj na oś czasu</button>
+    </div>
+  </div>`;
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
+
+  // Build tabs
+  const tabs = document.getElementById('mfl-tabs');
+  MD_FROMLIST_PROJS.forEach(p => {
+    const btn = document.createElement('button');
+    btn.className = 'md-fromlist-tab' + (p.key === mdFromListProjKey ? ' active' : '');
+    btn.textContent = p.label;
+    btn.onclick = () => { mdFromListProjKey = p.key; mdFromListSelected = null; mdFromListLoadItems(); tabs.querySelectorAll('.md-fromlist-tab').forEach(t => t.classList.remove('active')); btn.classList.add('active'); };
+    tabs.appendChild(btn);
+  });
+
+  // Set default time
+  const now = new Date();
+  const h = document.getElementById('mfl-hour');
+  const m = document.getElementById('mfl-min');
+  if (h) h.value = now.getHours();
+  if (m) m.value = Math.round(now.getMinutes() / 5) * 5 % 60;
+
+  mdFromListLoadItems();
+}
+
+async function mdFromListLoadItems() {
+  const listEl = document.getElementById('mfl-items');
+  if (!listEl) return;
+  listEl.innerHTML = '<div class="md-fromlist-empty">Ładowanie…</div>';
+
+  let taskItems = [];
+  // Use cached or load from Supabase
+  if (mdFromListCache[mdFromListProjKey]) {
+    taskItems = mdFromListCache[mdFromListProjKey];
+  } else {
+    try {
+      let data, error;
+      if (mdFromListProjKey === 'general') {
+        ({ data, error } = await sb.from('tasks').select('*').eq('checked', false).neq('project','general').limit(100));
+      } else {
+        ({ data, error } = await sb.from('tasks').select('*').eq('project', mdFromListProjKey).eq('checked', false).limit(100));
+      }
+      if (!error && data) {
+        taskItems = data.map(rowToItem).filter(i => !i.checked);
+        mdFromListCache[mdFromListProjKey] = taskItems;
+      }
+    } catch(e) {
+      // fallback to in-memory items for current project
+      taskItems = (typeof items !== 'undefined' ? items : []).filter(i => !i.checked);
+    }
+  }
+
+  // Filter out already scheduled
+  const scheduledIds = new Set((mdDayTasks[mdDate] || []).map(t => t.taskId).filter(Boolean));
+  const available = taskItems.filter(i => !scheduledIds.has(i.id) && !i.checked);
+
+  if (!available.length) {
+    listEl.innerHTML = '<div class="md-fromlist-empty">Brak dostępnych zadań</div>';
+    return;
+  }
+
+  const projLabels = {prywatne:'Prywatne',dp:'DOP',vns:'VNS',projekty:'Projekty',vibecoding:'Vibe',fundacja:'Fundacja',spotkania:'Spotkania'};
+  listEl.innerHTML = '';
+  available.slice(0, 50).forEach(item => {
+    const el = document.createElement('div');
+    el.className = 'md-fromlist-item' + (mdFromListSelected === item.id ? ' selected' : '');
+    const proj = item._project || item.cat || '';
+    const badge = proj ? `<span class="md-fromlist-item-proj md-proj-${proj}">${projLabels[proj]||proj}</span>` : '';
+    el.innerHTML = `<span class="md-fromlist-item-text">${escHtml(item.text)}</span>${badge}`;
+    el.onclick = () => {
+      mdFromListSelected = item.id;
+      listEl.querySelectorAll('.md-fromlist-item').forEach(e => e.classList.remove('selected'));
+      el.classList.add('selected');
+      const addBtn = document.getElementById('mfl-add-btn');
+      if (addBtn) { addBtn.disabled = false; }
+      const timeRow = document.getElementById('mfl-time-row');
+      if (timeRow) timeRow.style.display = '';
+    };
+    listEl.appendChild(el);
+  });
+}
+
+function mdFromListSetNow() {
+  const now = new Date();
+  const h = document.getElementById('mfl-hour');
+  const m = document.getElementById('mfl-min');
+  if (h) h.value = now.getHours();
+  if (m) m.value = Math.round(now.getMinutes() / 5) * 5 % 60;
+}
+
+function mdFromListSubmit() {
+  if (!mdFromListSelected) return;
+  const cache = mdFromListCache[mdFromListProjKey] || (typeof items !== 'undefined' ? items : []);
+  const task = cache.find(i => i.id === mdFromListSelected);
+  if (!task) return;
+  const hour = parseInt((document.getElementById('mfl-hour') || {}).value, 10) || new Date().getHours();
+  const minute = parseInt((document.getElementById('mfl-min') || {}).value, 10) || 0;
+  const dur = parseInt((document.getElementById('mfl-dur') || {}).value, 10) || 30;
+  const proj = task._project || task.cat || '';
+  if (!mdDayTasks[mdDate]) mdDayTasks[mdDate] = [];
+  const id = 'md-' + Date.now() + '-' + Math.random().toString(36).slice(2,7);
+  mdDayTasks[mdDate].push({ id, text: task.text, hour, minute, durationMin: dur, proj, done: false, taskId: task.id });
+  mdSave();
+  document.getElementById('md-fromlist-overlay').remove();
+  mdFromListSelected = null;
+  renderDayView();
+  showToast('📋 Dodano z listy → oś czasu', false);
+}
 </script>
 </body>
 </html>
