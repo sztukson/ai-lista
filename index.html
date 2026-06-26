@@ -918,7 +918,7 @@
   .md-canvas-click { position:absolute; inset:0; z-index:1; cursor:crosshair; }
 
   /* Blocks */
-  .md-block { position:absolute; left:4px; right:4px; border-radius:7px; padding:5px 8px; display:flex; flex-direction:column; gap:2px; cursor:grab; user-select:none; box-sizing:border-box; overflow:hidden; transition:box-shadow .12s, opacity .12s; z-index:10; }
+  .md-block { position:absolute; left:4px; right:4px; border-radius:7px; padding:5px 8px; display:flex; flex-direction:column; gap:2px; cursor:grab; user-select:none; box-sizing:border-box; overflow:hidden; transition:box-shadow .12s, opacity .12s; z-index:10; touch-action:none; min-height:40px; }
   .md-block:active { cursor:grabbing; box-shadow:0 4px 20px rgba(0,0,0,.4); }
   .md-block.dragging { opacity:.85; z-index:50; box-shadow:0 6px 24px rgba(0,0,0,.5); }
   .md-block:hover { box-shadow:0 2px 8px rgba(0,0,0,.25); }
@@ -5374,19 +5374,28 @@ function mdOnBlockPointerDown(e) {
   const id = el.dataset.mdId;
   const type = el.dataset.mdType;
   const dur = parseInt(el.style.height, 10) || 30;
-  const canvasRect = document.getElementById('md-canvas').getBoundingClientRect();
+  const scrollEl = document.querySelector('.md-timeline-wrap');
   el.setPointerCapture(e.pointerId);
-  // Drag aktywuje się dopiero po przekroczeniu progu ruchu
-  mdDrag = { el, id, type, startY: e.clientY, origTop: parseInt(el.style.top, 10), durationMin: dur, canvasTop: canvasRect.top, active: false };
+  mdDrag = {
+    el, id, type,
+    startY: e.clientY,
+    origTop: parseInt(el.style.top, 10),
+    durationMin: dur,
+    scrollTop: scrollEl ? scrollEl.scrollTop : 0,
+    active: false
+  };
   el.addEventListener('pointermove', mdOnDragMove);
   el.addEventListener('pointerup', mdOnDragEnd);
   e.preventDefault();
 }
 function mdOnDragMove(e) {
   if (!mdDrag) return;
-  const dy = e.clientY - mdDrag.startY;
+  e.preventDefault(); // blokuj scroll strony podczas drag
+  const scrollEl = document.querySelector('.md-timeline-wrap');
+  const scrollDelta = scrollEl ? scrollEl.scrollTop - mdDrag.scrollTop : 0;
+  const dy = (e.clientY - mdDrag.startY) + scrollDelta;
   if (!mdDrag.active) {
-    if (Math.abs(dy) < MD_DRAG_THRESH) return; // nie przekroczył progu — ignoruj
+    if (Math.abs(e.clientY - mdDrag.startY) < MD_DRAG_THRESH) return;
     mdDrag.active = true;
     mdDrag.el.classList.add('dragging');
   }
@@ -5424,12 +5433,13 @@ function mdOnResizePointerDown(e) {
 }
 function mdOnResizeMove(e) {
   if (!mdResize) return;
+  e.preventDefault();
   const dy = e.clientY - mdResize.startY;
   if (!mdResize.active) {
     if (Math.abs(dy) < MD_DRAG_THRESH) return;
     mdResize.active = true;
   }
-  const newH = Math.max(15, mdResize.origHeight + dy);
+  const newH = Math.max(30, mdResize.origHeight + dy);
   mdResize.el.style.height = newH + 'px';
 }
 function mdOnResizeEnd(e) {
