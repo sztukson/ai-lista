@@ -3356,7 +3356,9 @@ function duplicateItem(id) {
   const copy = { ...src, id: newId, checked: false, inProgress: false, completedAt: null, _prevSec: null, _prevQuad: null };
   const idx = items.findIndex(i => i.id === id);
   items.splice(idx + 1, 0, copy);
-  const row = { id: newId, project: activeProject, sec: copy.sec, quad: copy.quad,
+  // W widoku general activeProject='general' nie może być project w Supabase — bierz projekt źródłowy
+  const projForDb = (activeProject !== 'general' ? activeProject : null) || copy._project || copy.cat || 'prywatne';
+  const row = { id: newId, project: projForDb, sec: copy.sec, quad: copy.quad,
     text: copy.text, checked: false, in_progress: false, priority: copy.priority,
     pawel: copy.pawel, cat: copy.cat || null, note: copy.note || '', completed_at: null, prev_sec: null, prev_quad: null };
   sb.table('tasks').insert(row).catch(e => console.warn(e));
