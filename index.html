@@ -3917,7 +3917,12 @@ function submitNewItem() {
   document.getElementById('lbl-pawel').classList.remove('active');
   textEl.focus();
 
-  render(); autoSave();
+  render();
+  // Natychmiastowy zapis — nie czekaj 700ms debounce, żeby nie stracić przy szybkim reload
+  saveState(true);
+  const projForSb = activeProject !== 'general' ? activeProject : (cat || _proj || 'prywatne');
+  sb.table('tasks').upsert([itemToRow(items[items.length-1], projForSb)], { onConflict: 'id' }).catch(e => console.warn(e));
+  autoSave();
   logAction('➕', `Dodano: ${text.slice(0,55)}`);
   showToast('✓ Dodano', false);
 }
