@@ -1578,11 +1578,17 @@ const SUB_PROJECTS_BUILTIN = {
 };
 // merged at runtime with user-added projects from localStorage
 let SUB_PROJECTS = Object.assign({}, SUB_PROJECTS_BUILTIN);
+function registerCustomProjInPROJECTS(key, meta) {
+  if (!PROJECTS[key]) {
+    PROJECTS[key] = { label: meta.label, storageKey: 'ai-lista-' + key, defaultItems: [], catKey: key };
+  }
+}
 function loadCustomSubProjects() {
   try {
     const raw = localStorage.getItem('ai-lista-custom-subprojects');
     const custom = raw ? JSON.parse(raw) : {};
     SUB_PROJECTS = Object.assign({}, SUB_PROJECTS_BUILTIN, custom);
+    Object.entries(custom).forEach(([k, m]) => registerCustomProjInPROJECTS(k, m));
     rebuildSubProjSelect();
   } catch(e) {}
 }
@@ -1593,6 +1599,7 @@ function saveCustomSubProject(key, meta) {
     custom[key] = meta;
     localStorage.setItem('ai-lista-custom-subprojects', JSON.stringify(custom));
     SUB_PROJECTS[key] = meta;
+    registerCustomProjInPROJECTS(key, meta);
     rebuildSubProjSelect();
   } catch(e) {}
 }
@@ -3711,6 +3718,7 @@ function autoSave() {
 
 function loadState() {
   try {
+    if (!PROJECTS[activeProject]) return; // custom project nie zarejestrowany — pomiń
     const raw = localStorage.getItem(PROJECTS[activeProject].storageKey);
     if (!raw) return;
     const state = JSON.parse(raw);
